@@ -41,4 +41,15 @@ public class TaskItem : BaseEntity
         AssignedToUserId = assignedToUserId;
         DueDate = dueDate;
     }
+
+    public void LogHours(decimal hours)
+    {
+        if (hours <= 0)
+        {
+            throw new ArgumentException("Logged hours must be a number more than 0");
+        }
+
+        LoggedHours += hours;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }
