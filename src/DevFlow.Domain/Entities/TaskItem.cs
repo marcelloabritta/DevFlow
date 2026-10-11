@@ -42,14 +42,13 @@ public class TaskItem : BaseEntity
         DueDate = dueDate;
     }
 
-    public void LogHours(decimal hours)
+    public TaskLog LogHours(Guid userId, decimal hours, DateTime loggedAt)
     {
-        if (hours <= 0)
-        {
-            throw new ArgumentException("Logged hours must be a number more than 0");
-        }
+        var log = new TaskLog(Id, userId, hours, loggedAt);
 
         LoggedHours += hours;
         UpdatedAt = DateTime.UtcNow;
+
+        return log;
     }
 }

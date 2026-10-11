@@ -20,6 +20,7 @@ public class TaskLog : BaseEntity
         {
             throw new ArgumentException("User id cannot be empty.");
         }
+
         if (hoursLogged <= 0)
         {
             throw new ArgumentException("Hours logged must be a number more than 0.");
