@@ -1,4 +1,13 @@
+using DevFlow.Infrastructure.Persistence;
+
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<DevFlowDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 // Add services to the container.
 
