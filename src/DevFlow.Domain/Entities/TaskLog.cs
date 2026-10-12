@@ -1,4 +1,5 @@
 using DevFlow.Domain.Common;
+using DevFlow.Domain.Exceptions;
 
 namespace DevFlow.Domain.Entities;
 
@@ -13,22 +14,22 @@ public class TaskLog : BaseEntity
     {
         if (taskItemId == Guid.Empty)
         {
-            throw new ArgumentException("Task id cannot be empty.");
+            throw new DomainException("Task id cannot be empty.");
         }
 
         if (userId == Guid.Empty)
         {
-            throw new ArgumentException("User id cannot be empty.");
+            throw new DomainException("User id cannot be empty.");
         }
 
         if (hoursLogged <= 0)
         {
-            throw new ArgumentException("Hours logged must be a number more than 0.");
+            throw new DomainException("Hours logged must be greater than zero.");
         }
 
         if (loggedAt > DateTime.UtcNow)
         {
-            throw new ArgumentException("Logged at cannot be a date in the future.");
+            throw new DomainException("Logged at cannot be a date in the future.");
         }
 
         TaskItemId = taskItemId;

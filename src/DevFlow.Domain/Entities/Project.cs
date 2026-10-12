@@ -1,4 +1,5 @@
 using DevFlow.Domain.Common;
+using DevFlow.Domain.Exceptions;
 
 namespace DevFlow.Domain.Entities;
 
@@ -10,10 +11,14 @@ public class Project : BaseEntity
 
     public Project(string name, string? description, Guid ownerId)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new DomainException("Project name is required.");
+        }
+
         if (ownerId == Guid.Empty)
         {
-            throw new ArgumentException("Owner id cannot be empty.");
+            throw new DomainException("Owner id cannot be empty.");
         }
 
         Name = name;

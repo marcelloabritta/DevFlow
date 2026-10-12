@@ -1,5 +1,6 @@
 using DevFlow.Domain.Common;
 using DevFlow.Domain.Enums;
+using DevFlow.Domain.Exceptions;
 
 namespace DevFlow.Domain.Entities;
 
@@ -12,12 +13,29 @@ public class User : BaseEntity
 
     public User(string name, string email, string passwordHash, UserRole role)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentException.ThrowIfNullOrWhiteSpace(email);
-        ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash);
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new DomainException("The user name is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            throw new DomainException("The email is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(passwordHash))
+        {
+            throw new DomainException("The password is required.");
+        }
+
         if (!email.Contains('@'))
         {
-            throw new ArgumentException("Email must contain '@'.");
+            throw new DomainException("Email must contain '@'.");
+        }
+
+        if (!Enum.IsDefined(role))
+        {
+            throw new DomainException("Invalid user role.");
         }
 
         Name = name;

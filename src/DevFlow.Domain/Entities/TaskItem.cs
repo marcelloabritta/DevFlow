@@ -1,5 +1,6 @@
 using DevFlow.Domain.Common;
 using DevFlow.Domain.Enums;
+using DevFlow.Domain.Exceptions;
 
 namespace DevFlow.Domain.Entities;
 
@@ -17,18 +18,24 @@ public class TaskItem : BaseEntity
 
     public TaskItem(string title, string? description, TaskPriority priority, decimal estimatedHours, Guid projectId, Guid? assignedToUserId, DateTime? dueDate)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(title);
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            throw new DomainException("The task title is required.");
+        }
+
         if (!Enum.IsDefined(priority))
         {
-            throw new ArgumentException("Priority is not valid.");
+            throw new DomainException("Invalid task priority.");
         }
+
         if (estimatedHours <= 0)
         {
-            throw new ArgumentException("Estimated hours must be a number more than 0");
+            throw new DomainException("Estimated hours must be greater than zero.");
         }
+
         if (projectId == Guid.Empty)
         {
-            throw new ArgumentException("Project id cannot be empty.");
+            throw new DomainException("Project id cannot be empty.");
         }
 
         Title = title;
