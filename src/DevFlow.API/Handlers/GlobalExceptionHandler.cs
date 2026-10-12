@@ -1,3 +1,4 @@
+using DevFlow.Application.Exceptions;
 using DevFlow.Domain.Exceptions;
 
 using Microsoft.AspNetCore.Diagnostics;
@@ -8,13 +9,21 @@ public class GlobalExceptionHandler : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        if (exception is DomainException)
+        int? statusCode = exception switch
         {
-            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-            await httpContext.Response.WriteAsJsonAsync(new { message = exception.Message }, cancellationToken);
-            return true;
+            DomainException => StatusCodes.Status400BadRequest,
+            NotFoundException => StatusCodes.Status404NotFound,
+            _ => null
+        };
+
+        if (statusCode is null)
+        {
+            return false;
         }
 
-        return false;
+        httpContext.Response.StatusCode = statusCode.Value;
+        await httpContext.Response.WriteAsJsonAsync(new { message = exception.Message }, cancellationToken);
+
+        return true;
     }
 }

@@ -1,3 +1,4 @@
+using DevFlow.Application.Exceptions;
 using DevFlow.Application.Interfaces;
 using DevFlow.Domain.Entities;
 
@@ -5,17 +6,26 @@ namespace DevFlow.Application.Services;
 
 public class ProjectService
 {
-    private readonly IProjectRepository _repository;
+    private readonly IProjectRepository _projectRepository;
+    private readonly IUserRepository _userRepository;
 
-    public ProjectService(IProjectRepository repository)
+    public ProjectService(IProjectRepository projectRepository, IUserRepository userRepository)
     {
-        _repository = repository;
+        _projectRepository = projectRepository;
+        _userRepository = userRepository;
     }
 
     public async Task<Guid> CreateAsync(string name, string? description, Guid ownerId)
     {
         var project = new Project(name, description, ownerId);
-        await _repository.AddAsync(project);
+
+        var ownerExists = await _userRepository.ExistsAsync(ownerId);
+        if (!ownerExists)
+        {
+            throw new NotFoundException($"The user with id {ownerId} does not exist.");
+        }
+
+        await _projectRepository.AddAsync(project);
         return project.Id;
     }
 }
