@@ -1,15 +1,13 @@
 using DevFlow.Application;
 using DevFlow.Infrastructure;
 
-using Microsoft.EntityFrameworkCore;
-
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-builder.Services.AddInfrastructure(connectionString);
 builder.Services.AddApplication();
+builder.Services.AddInfrastructure(connectionString);
 
 // Add services to the container.
 
