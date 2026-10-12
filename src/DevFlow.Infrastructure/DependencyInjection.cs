@@ -1,4 +1,6 @@
+using DevFlow.Application.Interfaces;
 using DevFlow.Infrastructure.Persistence;
+using DevFlow.Infrastructure.Persistence.Repositories;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +14,8 @@ public static class DependencyInjection
     {
         services.AddDbContext<DevFlowDbContext>(options =>
             options.UseNpgsql(connectionString));
+
+        services.AddScoped<IProjectRepository, ProjectRepository>();
         return services;
     }
 }
