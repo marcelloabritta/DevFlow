@@ -39,4 +39,9 @@ public class ProjectService
 
         return project;
     }
+
+    public async Task<IEnumerable<Project>> GetAllAsync()
+    {
+        return await _projectRepository.GetAllAsync();
+    }
 }

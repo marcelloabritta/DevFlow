@@ -20,6 +20,13 @@ public class ProjectRepository : IProjectRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task<IEnumerable<Project>> GetAllAsync()
+    {
+        return await _context.Projects
+                             .Where(p => !p.IsDeleted)
+                             .ToListAsync();
+    }
+
     public async Task<Project?> GetByIdAsync(Guid id)
     {
         return await _context.Projects.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);

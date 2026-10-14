@@ -28,7 +28,15 @@ public class ProjectsController : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var project = await _service.GetByIdAsync(id);
-        var response = new ProjectResponse(project.Id, project.Name, project.Description, project.CreatedAt, project.UpdatedAt, project.OwnerId);
+        var response = ProjectResponse.FromEntity(project);
+        return Ok(response);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var projects = await _service.GetAllAsync();
+        var response = projects.Select(ProjectResponse.FromEntity);
         return Ok(response);
     }
 }
