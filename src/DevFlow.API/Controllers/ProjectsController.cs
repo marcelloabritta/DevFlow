@@ -33,9 +33,9 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10)
     {
-        var projects = await _service.GetAllAsync();
+        var projects = await _service.GetAllAsync(page, pageSize);
         var response = projects.Select(ProjectResponse.FromEntity);
         return Ok(response);
     }

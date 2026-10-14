@@ -40,8 +40,23 @@ public class ProjectService
         return project;
     }
 
-    public async Task<IEnumerable<Project>> GetAllAsync()
+    public async Task<IEnumerable<Project>> GetAllAsync(int page, int pageSize)
     {
-        return await _projectRepository.GetAllAsync();
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        if (pageSize < 1)
+        {
+            pageSize = 10;
+        }
+
+        if (pageSize > 50)
+        {
+            pageSize = 50;
+        }
+
+        return await _projectRepository.GetAllAsync(page, pageSize);
     }
 }

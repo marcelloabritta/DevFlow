@@ -20,10 +20,13 @@ public class ProjectRepository : IProjectRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<Project>> GetAllAsync()
+    public async Task<IEnumerable<Project>> GetAllAsync(int page, int pageSize)
     {
         return await _context.Projects
                              .Where(p => !p.IsDeleted)
+                             .OrderByDescending(p => p.CreatedAt)
+                             .Skip((page - 1) * pageSize)
+                             .Take(pageSize)
                              .ToListAsync();
     }
 
