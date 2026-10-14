@@ -1,3 +1,4 @@
+using DevFlow.Application.Common;
 using DevFlow.Application.Exceptions;
 using DevFlow.Application.Interfaces;
 using DevFlow.Domain.Entities;
@@ -40,7 +41,7 @@ public class ProjectService
         return project;
     }
 
-    public async Task<IEnumerable<Project>> GetAllAsync(int page, int pageSize)
+    public async Task<PagedResult<Project>> GetAllAsync(int page, int pageSize)
     {
         if (page < 1)
         {
@@ -57,6 +58,10 @@ public class ProjectService
             pageSize = 50;
         }
 
-        return await _projectRepository.GetAllAsync(page, pageSize);
+
+        var projects = await _projectRepository.GetAllAsync(page, pageSize);
+        var total = await _projectRepository.CountAsync();
+
+        return new PagedResult<Project>(projects, page, pageSize, total);
     }
 }

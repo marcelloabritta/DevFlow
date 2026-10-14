@@ -20,6 +20,11 @@ public class ProjectRepository : IProjectRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task<int> CountAsync()
+    {
+        return await _context.Projects.CountAsync(p => !p.IsDeleted);
+    }
+
     public async Task<IEnumerable<Project>> GetAllAsync(int page, int pageSize)
     {
         return await _context.Projects

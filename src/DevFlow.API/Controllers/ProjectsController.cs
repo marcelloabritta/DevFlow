@@ -1,5 +1,6 @@
 using DevFlow.API.Requests;
 using DevFlow.API.Responses;
+using DevFlow.Application.Common;
 using DevFlow.Application.Services;
 
 using Microsoft.AspNetCore.Mvc;
@@ -35,8 +36,14 @@ public class ProjectsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10)
     {
-        var projects = await _service.GetAllAsync(page, pageSize);
-        var response = projects.Select(ProjectResponse.FromEntity);
+        var result = await _service.GetAllAsync(page, pageSize);
+
+        var response = new PagedResult<ProjectResponse>(
+                    result.Items.Select(ProjectResponse.FromEntity),
+                    result.Page,
+                    result.PageSize,
+                    result.TotalItems);
+
         return Ok(response);
     }
 }
