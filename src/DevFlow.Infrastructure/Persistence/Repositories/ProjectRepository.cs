@@ -1,6 +1,8 @@
 using DevFlow.Application.Interfaces;
 using DevFlow.Domain.Entities;
 
+using Microsoft.EntityFrameworkCore;
+
 namespace DevFlow.Infrastructure.Persistence.Repositories;
 
 public class ProjectRepository : IProjectRepository
@@ -16,5 +18,10 @@ public class ProjectRepository : IProjectRepository
     {
         await _context.Projects.AddAsync(project);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<Project?> GetByIdAsync(Guid id)
+    {
+        return await _context.Projects.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
     }
 }

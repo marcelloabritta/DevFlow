@@ -28,4 +28,15 @@ public class ProjectService
         await _projectRepository.AddAsync(project);
         return project.Id;
     }
+
+    public async Task<Project> GetByIdAsync(Guid id)
+    {
+        var project = await _projectRepository.GetByIdAsync(id);
+        if (project is null)
+        {
+            throw new NotFoundException($"The project with id {id} does not exist.");
+        }
+
+        return project;
+    }
 }

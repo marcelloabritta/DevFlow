@@ -1,4 +1,5 @@
 using DevFlow.API.Requests;
+using DevFlow.API.Responses;
 using DevFlow.Application.Services;
 
 using Microsoft.AspNetCore.Mvc;
@@ -21,5 +22,13 @@ public class ProjectsController : ControllerBase
     {
         var id = await _service.CreateAsync(request.Name, request.Description, request.OwnerId);
         return Created($"/api/projects/{id}", id);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var project = await _service.GetByIdAsync(id);
+        var response = new ProjectResponse(project.Id, project.Name, project.Description, project.CreatedAt, project.UpdatedAt, project.OwnerId);
+        return Ok(response);
     }
 }
