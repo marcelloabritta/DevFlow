@@ -7,6 +7,9 @@ namespace DevFlow.Application.Services;
 
 public class ProjectService
 {
+    private const int MaxPageSize = 50;
+    private const int FirstPage = 1;
+    private const int DefaultPageSize = 10;
     private readonly IProjectRepository _projectRepository;
     private readonly IUserRepository _userRepository;
 
@@ -43,19 +46,19 @@ public class ProjectService
 
     public async Task<PagedResult<Project>> GetAllAsync(int page, int pageSize)
     {
-        if (page < 1)
+        if (page < FirstPage)
         {
-            page = 1;
+            page = FirstPage;
         }
 
         if (pageSize < 1)
         {
-            pageSize = 10;
+            pageSize = DefaultPageSize;
         }
 
-        if (pageSize > 50)
+        if (pageSize > MaxPageSize)
         {
-            pageSize = 50;
+            pageSize = MaxPageSize;
         }
 
 
