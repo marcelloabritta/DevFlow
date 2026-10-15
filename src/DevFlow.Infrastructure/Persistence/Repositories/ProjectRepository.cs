@@ -22,14 +22,13 @@ public class ProjectRepository : IProjectRepository
 
     public async Task<int> CountAsync()
     {
-        return await _context.Projects.CountAsync(p => !p.IsDeleted);
+        return await _context.Projects.CountAsync();
     }
 
     public async Task<IEnumerable<Project>> GetAllAsync(int page, int pageSize)
     {
         return await _context.Projects
                              .AsNoTracking()
-                             .Where(p => !p.IsDeleted)
                              .OrderByDescending(p => p.CreatedAt)
                              .Skip((page - 1) * pageSize)
                              .Take(pageSize)
@@ -38,7 +37,7 @@ public class ProjectRepository : IProjectRepository
 
     public async Task<Project?> GetByIdAsync(Guid id)
     {
-        return await _context.Projects.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
+        return await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task UpdateAsync(Project project)

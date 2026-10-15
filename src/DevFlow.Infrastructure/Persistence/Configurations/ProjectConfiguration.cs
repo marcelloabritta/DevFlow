@@ -19,5 +19,7 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
 
         builder.Property(p => p.Description)
                .HasMaxLength(500);
+
+        builder.HasQueryFilter(p => !p.IsDeleted);
     }
 }

@@ -21,5 +21,7 @@ public class TaskLogConfiguration : IEntityTypeConfiguration<TaskLog>
 
         builder.Property(tl => tl.HoursLogged)
                .HasPrecision(4, 2);
+
+        builder.HasQueryFilter(tl => !tl.IsDeleted);
     }
 }
