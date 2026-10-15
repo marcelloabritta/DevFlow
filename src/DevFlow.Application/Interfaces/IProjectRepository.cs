@@ -8,4 +8,5 @@ public interface IProjectRepository
     Task<Project?> GetByIdAsync(Guid id);
     Task<IEnumerable<Project>> GetAllAsync(int page, int pageSize);
     Task<int> CountAsync();
+    Task UpdateAsync(Project project);
 }

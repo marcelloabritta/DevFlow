@@ -46,4 +46,11 @@ public class ProjectsController : ControllerBase
 
         return Ok(response);
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(Guid id, UpdateProjectRequest request)
+    {
+        await _service.UpdateAsync(id, request.Name, request.Description);
+        return NoContent();
+    }
 }

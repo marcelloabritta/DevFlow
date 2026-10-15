@@ -40,4 +40,9 @@ public class ProjectRepository : IProjectRepository
     {
         return await _context.Projects.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
     }
+
+    public async Task UpdateAsync(Project project)
+    {
+        await _context.SaveChangesAsync();
+    }
 }

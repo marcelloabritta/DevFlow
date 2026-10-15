@@ -25,4 +25,16 @@ public class Project : BaseEntity
         Description = description;
         OwnerId = ownerId;
     }
+
+    public void Update(string name, string? description)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new DomainException("Project name is required.");
+        }
+
+        Name = name;
+        Description = description;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

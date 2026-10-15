@@ -67,4 +67,11 @@ public class ProjectService
 
         return new PagedResult<Project>(projects, page, pageSize, total);
     }
+
+    public async Task UpdateAsync(Guid id, string name, string? description)
+    {
+        var project = await GetByIdAsync(id);
+        project.Update(name, description);
+        await _projectRepository.UpdateAsync(project);
+    }
 }
