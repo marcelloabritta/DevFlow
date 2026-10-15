@@ -74,4 +74,11 @@ public class ProjectService
         project.Update(name, description);
         await _projectRepository.UpdateAsync(project);
     }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        var project = await GetByIdAsync(id);
+        project.MarkAsDeleted();
+        await _projectRepository.UpdateAsync(project);
+    }
 }

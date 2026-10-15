@@ -12,4 +12,10 @@ public abstract class BaseEntity
         Id = Guid.NewGuid();
         CreatedAt = DateTime.UtcNow;
     }
+
+    public void MarkAsDeleted()
+    {
+        IsDeleted = true;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

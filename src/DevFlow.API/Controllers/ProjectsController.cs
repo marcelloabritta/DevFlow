@@ -53,4 +53,11 @@ public class ProjectsController : ControllerBase
         await _service.UpdateAsync(id, request.Name, request.Description);
         return NoContent();
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        await _service.DeleteAsync(id);
+        return NoContent();
+    }
 }
