@@ -81,6 +81,12 @@ A API sobe em `http://localhost:5120`.
 
 ## Endpoints
 
-| Método | Rota            | Descrição       |
-| ------ | --------------- | --------------- |
-| POST   | `/api/projects` | Cria um projeto |
+| Método | Rota                               | Descrição                          | Sucesso |
+| ------ | ---------------------------------- | ---------------------------------- | ------- |
+| POST   | `/api/projects`                    | Cria um projeto                    | 201     |
+| GET    | `/api/projects?page=1&pageSize=10` | Lista projetos (paginado, máx. 50) | 200     |
+| GET    | `/api/projects/{id}`               | Busca um projeto pelo id           | 200     |
+| PUT    | `/api/projects/{id}`               | Edita nome e descrição             | 204     |
+| DELETE | `/api/projects/{id}`               | Exclui um projeto (soft delete)    | 204     |
+
+Erros seguem o padrão: **400** para dados inválidos e **404** para recurso inexistente.
