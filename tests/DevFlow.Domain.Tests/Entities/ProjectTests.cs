@@ -5,14 +5,17 @@ namespace DevFlow.Domain.Tests.Entities;
 
 public class ProjectTests
 {
-    [Fact]
-    public void Update_WithEmptyName_ThrowsDomainException()
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public void Update_WithInvalidName_ThrowsDomainException(string? name)
     {
         // Arrange
         var project = new Project(name: "Original Name", description: "Original description", ownerId: Guid.NewGuid());
 
         // Act & Assert
-        Assert.Throws<DomainException>(() => project.Update("", "Any description"));
+        Assert.Throws<DomainException>(() => project.Update(name!, "Any description"));
     }
 
     [Fact]
@@ -30,11 +33,14 @@ public class ProjectTests
         Assert.NotNull(project.UpdatedAt);
     }
 
-    [Fact]
-    public void Constructor_WithEmptyName_ThrowsDomainException()
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public void Constructor_WithEmptyName_ThrowsDomainException(string? name)
     {
         // Act & Assert
-        Assert.Throws<DomainException>(() => new Project(name: "", description: "Any description", ownerId: Guid.NewGuid()));
+        Assert.Throws<DomainException>(() => new Project(name: name!, description: "Any description", ownerId: Guid.NewGuid()));
     }
 
     [Fact]
