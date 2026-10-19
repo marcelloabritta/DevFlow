@@ -24,9 +24,8 @@ public class ProjectServiceTests
     public async Task GetByIdAsync_WithNonexistentId_ThrowsNotFoundException()
     {
         // Arrange
-
         _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>()))
-                             .ReturnsAsync((Project?)null);
+                              .ReturnsAsync((Project?)null);
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() => _service.GetByIdAsync(Guid.NewGuid()));
@@ -39,7 +38,7 @@ public class ProjectServiceTests
         var project = new Project(name: "Project Name", description: "Any description", ownerId: Guid.NewGuid());
 
         _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>()))
-                             .ReturnsAsync(project);
+                              .ReturnsAsync(project);
 
         // Act
         var result = await _service.GetByIdAsync(project.Id);
@@ -53,7 +52,7 @@ public class ProjectServiceTests
     {
         // Arrange
         _userRepositoryMock.Setup(repo => repo.ExistsAsync(It.IsAny<Guid>()))
-                   .ReturnsAsync(false);
+                           .ReturnsAsync(false);
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() => _service.CreateAsync(
@@ -67,7 +66,7 @@ public class ProjectServiceTests
     {
         // Arrange
         _userRepositoryMock.Setup(repo => repo.ExistsAsync(It.IsAny<Guid>()))
-                   .ReturnsAsync(true);
+                           .ReturnsAsync(true);
 
         // Act
         var result = await _service.CreateAsync(
@@ -141,13 +140,27 @@ public class ProjectServiceTests
     }
 
     [Fact]
+    public async Task UpdateAsync_WithNonexistentId_ThrowsNotFoundException()
+    {
+        // Arrange
+        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>()))
+                              .ReturnsAsync((Project?)null);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateAsync(
+            id: Guid.NewGuid(),
+            name: "Project Name",
+            description: "Any description"));
+    }
+
+    [Fact]
     public async Task UpdateAsync_WithExistingId_UpdatesProject()
     {
         // Arrange
         var project = new Project(name: "Project Name", description: "Any description", ownerId: Guid.NewGuid());
 
         _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(project.Id))
-                           .ReturnsAsync(project);
+                              .ReturnsAsync(project);
 
         // Act 
         await _service.UpdateAsync(
@@ -162,16 +175,30 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task UpdateAsync_WithNonexistentId_ThrowsNotFoundException()
+    public async Task DeleteAsync_WithNonexistentId_ThrowsNotFoundException()
     {
         // Arrange
         _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>()))
-                           .ReturnsAsync((Project?)null);
+                              .ReturnsAsync((Project?)null);
 
         // Act & Assert
-        await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateAsync(
-            id: Guid.NewGuid(),
-            name: "Project Name",
-            description: "Any Description"));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.DeleteAsync(id: Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithExistingId_MarksProjectAsDeleted()
+    {
+        // Arrange
+        var project = new Project(name: "Project Name", description: "Any description", ownerId: Guid.NewGuid());
+
+        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(project.Id))
+                              .ReturnsAsync(project);
+
+        // Act
+        await _service.DeleteAsync(id: project.Id);
+
+        // Assert
+        Assert.True(project.IsDeleted);
+        _projectRepositoryMock.Verify(repo => repo.UpdateAsync(project), Times.Once);
     }
 }
