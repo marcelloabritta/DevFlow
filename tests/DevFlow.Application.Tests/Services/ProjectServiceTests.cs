@@ -79,4 +79,64 @@ public class ProjectServiceTests
         Assert.NotEqual(Guid.Empty, result);
         _projectRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Project>()), Times.Once);
     }
+
+    [Fact]
+    public async Task GetAllAsync_WithValidPagination_KeepsValues()
+    {
+        // Arrange
+        var page = 2;
+        var pageSize = 20;
+
+        // Act
+        var result = await _service.GetAllAsync(page, pageSize);
+
+        // Assert
+        Assert.Equal(page, result.Page);
+        Assert.Equal(pageSize, result.PageSize);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithPageBelowFirstPage_UsesFirstPage()
+    {
+        // Arrange
+        var page = 0;
+        var pageSize = 20;
+
+        // Act
+        var result = await _service.GetAllAsync(page, pageSize);
+
+        // Assert
+        Assert.Equal(1, result.Page);
+        Assert.Equal(pageSize, result.PageSize);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithPageSizeAboveMax_UsesMaxPageSize()
+    {
+        // Arrange
+        var page = 2;
+        var pageSize = 51;
+
+        // Act
+        var result = await _service.GetAllAsync(page, pageSize);
+
+        // Assert
+        Assert.Equal(page, result.Page);
+        Assert.Equal(50, result.PageSize);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithPageSizeBelowMin_UsesDefaultPageSize()
+    {
+        // Arrange
+        var page = 2;
+        var pageSize = 0;
+
+        // Act
+        var result = await _service.GetAllAsync(page, pageSize);
+
+        // Assert
+        Assert.Equal(page, result.Page);
+        Assert.Equal(10, result.PageSize);
+    }
 }
