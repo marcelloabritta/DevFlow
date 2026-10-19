@@ -47,4 +47,36 @@ public class ProjectServiceTests
         // Assert
         Assert.Same(project, result);
     }
+
+    [Fact]
+    public async Task CreateAsync_WithNonexistentOwner_ThrowsNotFoundException()
+    {
+        // Arrange
+        _userRepositoryMock.Setup(repo => repo.ExistsAsync(It.IsAny<Guid>()))
+                   .ReturnsAsync(false);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.CreateAsync(
+            name: "Project Name",
+            description: "Any description",
+            ownerId: Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithExistingOwner_CreatesProject()
+    {
+        // Arrange
+        _userRepositoryMock.Setup(repo => repo.ExistsAsync(It.IsAny<Guid>()))
+                   .ReturnsAsync(true);
+
+        // Act
+        var result = await _service.CreateAsync(
+            name: "Project Name",
+            description: "Any description",
+            ownerId: Guid.NewGuid());
+
+        // Assert
+        Assert.NotEqual(Guid.Empty, result);
+        _projectRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Project>()), Times.Once);
+    }
 }
