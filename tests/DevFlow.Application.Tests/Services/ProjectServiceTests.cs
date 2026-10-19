@@ -162,7 +162,7 @@ public class ProjectServiceTests
         _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(project.Id))
                               .ReturnsAsync(project);
 
-        // Act 
+        // Act
         await _service.UpdateAsync(
             id: project.Id,
             name: "Project Updated",
