@@ -139,4 +139,39 @@ public class ProjectServiceTests
         Assert.Equal(page, result.Page);
         Assert.Equal(10, result.PageSize);
     }
+
+    [Fact]
+    public async Task UpdateAsync_WithExistingId_UpdatesProject()
+    {
+        // Arrange
+        var project = new Project(name: "Project Name", description: "Any description", ownerId: Guid.NewGuid());
+
+        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(project.Id))
+                           .ReturnsAsync(project);
+
+        // Act 
+        await _service.UpdateAsync(
+            id: project.Id,
+            name: "Project Updated",
+            description: "Updated description");
+
+        // Assert
+        Assert.Equal("Project Updated", project.Name);
+        Assert.Equal("Updated description", project.Description);
+        _projectRepositoryMock.Verify(repo => repo.UpdateAsync(project), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithNonexistentId_ThrowsNotFoundException()
+    {
+        // Arrange
+        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>()))
+                           .ReturnsAsync((Project?)null);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateAsync(
+            id: Guid.NewGuid(),
+            name: "Project Name",
+            description: "Any Description"));
+    }
 }
