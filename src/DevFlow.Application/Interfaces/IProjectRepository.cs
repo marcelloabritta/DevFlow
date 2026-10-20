@@ -4,9 +4,9 @@ namespace DevFlow.Application.Interfaces;
 
 public interface IProjectRepository
 {
-    Task AddAsync(Project project);
-    Task<Project?> GetByIdAsync(Guid id);
-    Task<IEnumerable<Project>> GetAllAsync(int page, int pageSize);
-    Task<int> CountAsync();
-    Task UpdateAsync(Project project);
+    Task AddAsync(Project project, CancellationToken cancellationToken);
+    Task<Project?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<IEnumerable<Project>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken);
+    Task<int> CountAsync(CancellationToken cancellationToken);
+    Task UpdateAsync(Project project, CancellationToken cancellationToken);
 }

@@ -19,23 +19,23 @@ public class ProjectService
         _userRepository = userRepository;
     }
 
-    public async Task<Guid> CreateAsync(string name, string? description, Guid ownerId)
+    public async Task<Guid> CreateAsync(string name, string? description, Guid ownerId, CancellationToken cancellationToken)
     {
         var project = new Project(name, description, ownerId);
 
-        var ownerExists = await _userRepository.ExistsAsync(ownerId);
+        var ownerExists = await _userRepository.ExistsAsync(ownerId, cancellationToken);
         if (!ownerExists)
         {
             throw new NotFoundException($"The user with id {ownerId} does not exist.");
         }
 
-        await _projectRepository.AddAsync(project);
+        await _projectRepository.AddAsync(project, cancellationToken);
         return project.Id;
     }
 
-    public async Task<Project> GetByIdAsync(Guid id)
+    public async Task<Project> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        var project = await _projectRepository.GetByIdAsync(id);
+        var project = await _projectRepository.GetByIdAsync(id, cancellationToken);
         if (project is null)
         {
             throw new NotFoundException($"The project with id {id} does not exist.");
@@ -44,7 +44,7 @@ public class ProjectService
         return project;
     }
 
-    public async Task<PagedResult<Project>> GetAllAsync(int page, int pageSize)
+    public async Task<PagedResult<Project>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken)
     {
         if (page < FirstPage)
         {
@@ -62,23 +62,23 @@ public class ProjectService
         }
 
 
-        var projects = await _projectRepository.GetAllAsync(page, pageSize);
-        var total = await _projectRepository.CountAsync();
+        var projects = await _projectRepository.GetAllAsync(page, pageSize, cancellationToken);
+        var total = await _projectRepository.CountAsync(cancellationToken);
 
         return new PagedResult<Project>(projects, page, pageSize, total);
     }
 
-    public async Task UpdateAsync(Guid id, string name, string? description)
+    public async Task UpdateAsync(Guid id, string name, string? description, CancellationToken cancellationToken)
     {
-        var project = await GetByIdAsync(id);
+        var project = await GetByIdAsync(id, cancellationToken);
         project.Update(name, description);
-        await _projectRepository.UpdateAsync(project);
+        await _projectRepository.UpdateAsync(project, cancellationToken);
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
-        var project = await GetByIdAsync(id);
+        var project = await GetByIdAsync(id, cancellationToken);
         project.MarkAsDeleted();
-        await _projectRepository.UpdateAsync(project);
+        await _projectRepository.UpdateAsync(project, cancellationToken);
     }
 }

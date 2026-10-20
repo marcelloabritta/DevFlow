@@ -14,34 +14,34 @@ public class ProjectRepository : IProjectRepository
         _context = context;
     }
 
-    public async Task AddAsync(Project project)
+    public async Task AddAsync(Project project, CancellationToken cancellationToken)
     {
-        await _context.Projects.AddAsync(project);
-        await _context.SaveChangesAsync();
+        await _context.Projects.AddAsync(project, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<int> CountAsync()
+    public async Task<int> CountAsync(CancellationToken cancellationToken)
     {
-        return await _context.Projects.CountAsync();
+        return await _context.Projects.CountAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Project>> GetAllAsync(int page, int pageSize)
+    public async Task<IEnumerable<Project>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken)
     {
         return await _context.Projects
                              .AsNoTracking()
                              .OrderByDescending(p => p.CreatedAt)
                              .Skip((page - 1) * pageSize)
                              .Take(pageSize)
-                             .ToListAsync();
+                             .ToListAsync(cancellationToken);
     }
 
-    public async Task<Project?> GetByIdAsync(Guid id)
+    public async Task<Project?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
+        return await _context.Projects.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
-    public async Task UpdateAsync(Project project)
+    public async Task UpdateAsync(Project project, CancellationToken cancellationToken)
     {
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

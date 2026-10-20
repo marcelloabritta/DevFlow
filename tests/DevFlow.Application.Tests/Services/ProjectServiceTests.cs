@@ -24,11 +24,11 @@ public class ProjectServiceTests
     public async Task GetByIdAsync_WithNonexistentId_ThrowsNotFoundException()
     {
         // Arrange
-        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>()))
+        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                               .ReturnsAsync((Project?)null);
 
         // Act & Assert
-        await Assert.ThrowsAsync<NotFoundException>(() => _service.GetByIdAsync(Guid.NewGuid()));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.GetByIdAsync(Guid.NewGuid(), CancellationToken.None));
     }
 
     [Fact]
@@ -37,11 +37,11 @@ public class ProjectServiceTests
         // Arrange
         var project = new Project(name: "Project Name", description: "Any description", ownerId: Guid.NewGuid());
 
-        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>()))
+        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                               .ReturnsAsync(project);
 
         // Act
-        var result = await _service.GetByIdAsync(project.Id);
+        var result = await _service.GetByIdAsync(project.Id, CancellationToken.None);
 
         // Assert
         Assert.Same(project, result);
@@ -51,32 +51,34 @@ public class ProjectServiceTests
     public async Task CreateAsync_WithNonexistentOwner_ThrowsNotFoundException()
     {
         // Arrange
-        _userRepositoryMock.Setup(repo => repo.ExistsAsync(It.IsAny<Guid>()))
+        _userRepositoryMock.Setup(repo => repo.ExistsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                            .ReturnsAsync(false);
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() => _service.CreateAsync(
             name: "Project Name",
             description: "Any description",
-            ownerId: Guid.NewGuid()));
+            ownerId: Guid.NewGuid(),
+            cancellationToken: CancellationToken.None));
     }
 
     [Fact]
     public async Task CreateAsync_WithExistingOwner_CreatesProject()
     {
         // Arrange
-        _userRepositoryMock.Setup(repo => repo.ExistsAsync(It.IsAny<Guid>()))
+        _userRepositoryMock.Setup(repo => repo.ExistsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                            .ReturnsAsync(true);
 
         // Act
         var result = await _service.CreateAsync(
             name: "Project Name",
             description: "Any description",
-            ownerId: Guid.NewGuid());
+            ownerId: Guid.NewGuid(),
+            cancellationToken: CancellationToken.None);
 
         // Assert
         Assert.NotEqual(Guid.Empty, result);
-        _projectRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Project>()), Times.Once);
+        _projectRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Project>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -87,7 +89,7 @@ public class ProjectServiceTests
         var pageSize = 20;
 
         // Act
-        var result = await _service.GetAllAsync(page, pageSize);
+        var result = await _service.GetAllAsync(page, pageSize, CancellationToken.None);
 
         // Assert
         Assert.Equal(page, result.Page);
@@ -102,7 +104,7 @@ public class ProjectServiceTests
         var pageSize = 20;
 
         // Act
-        var result = await _service.GetAllAsync(page, pageSize);
+        var result = await _service.GetAllAsync(page, pageSize, CancellationToken.None);
 
         // Assert
         Assert.Equal(1, result.Page);
@@ -117,7 +119,7 @@ public class ProjectServiceTests
         var pageSize = 51;
 
         // Act
-        var result = await _service.GetAllAsync(page, pageSize);
+        var result = await _service.GetAllAsync(page, pageSize, CancellationToken.None);
 
         // Assert
         Assert.Equal(page, result.Page);
@@ -132,7 +134,7 @@ public class ProjectServiceTests
         var pageSize = 0;
 
         // Act
-        var result = await _service.GetAllAsync(page, pageSize);
+        var result = await _service.GetAllAsync(page, pageSize, CancellationToken.None);
 
         // Assert
         Assert.Equal(page, result.Page);
@@ -143,14 +145,15 @@ public class ProjectServiceTests
     public async Task UpdateAsync_WithNonexistentId_ThrowsNotFoundException()
     {
         // Arrange
-        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>()))
+        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                               .ReturnsAsync((Project?)null);
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateAsync(
             id: Guid.NewGuid(),
             name: "Project Name",
-            description: "Any description"));
+            description: "Any description",
+            cancellationToken: CancellationToken.None));
     }
 
     [Fact]
@@ -159,30 +162,31 @@ public class ProjectServiceTests
         // Arrange
         var project = new Project(name: "Project Name", description: "Any description", ownerId: Guid.NewGuid());
 
-        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(project.Id))
+        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(project.Id, It.IsAny<CancellationToken>()))
                               .ReturnsAsync(project);
 
         // Act
         await _service.UpdateAsync(
             id: project.Id,
             name: "Project Updated",
-            description: "Updated description");
+            description: "Updated description",
+            cancellationToken: CancellationToken.None);
 
         // Assert
         Assert.Equal("Project Updated", project.Name);
         Assert.Equal("Updated description", project.Description);
-        _projectRepositoryMock.Verify(repo => repo.UpdateAsync(project), Times.Once);
+        _projectRepositoryMock.Verify(repo => repo.UpdateAsync(project, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task DeleteAsync_WithNonexistentId_ThrowsNotFoundException()
     {
         // Arrange
-        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>()))
+        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                               .ReturnsAsync((Project?)null);
 
         // Act & Assert
-        await Assert.ThrowsAsync<NotFoundException>(() => _service.DeleteAsync(id: Guid.NewGuid()));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.DeleteAsync(id: Guid.NewGuid(), cancellationToken: CancellationToken.None));
     }
 
     [Fact]
@@ -191,14 +195,14 @@ public class ProjectServiceTests
         // Arrange
         var project = new Project(name: "Project Name", description: "Any description", ownerId: Guid.NewGuid());
 
-        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(project.Id))
+        _projectRepositoryMock.Setup(repo => repo.GetByIdAsync(project.Id, It.IsAny<CancellationToken>()))
                               .ReturnsAsync(project);
 
         // Act
-        await _service.DeleteAsync(id: project.Id);
+        await _service.DeleteAsync(id: project.Id, cancellationToken: CancellationToken.None);
 
         // Assert
         Assert.True(project.IsDeleted);
-        _projectRepositoryMock.Verify(repo => repo.UpdateAsync(project), Times.Once);
+        _projectRepositoryMock.Verify(repo => repo.UpdateAsync(project, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

@@ -2,5 +2,5 @@ namespace DevFlow.Application.Interfaces;
 
 public interface IUserRepository
 {
-    Task<bool> ExistsAsync(Guid userId);
+    Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken);
 }
