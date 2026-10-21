@@ -60,6 +60,40 @@ public class TaskItemTests
         Assert.Equal(0m, taskItem.LoggedHours);
     }
 
+    [Fact]
+    public void LogHours_CalledTwice_AccumulatesLoggedHours()
+    {
+        // Arrange
+        var taskItem = CreateTaskItem();
+        var userId = Guid.NewGuid();
+
+        // Act
+        taskItem.LogHours(userId: userId, hours: 2m, loggedAt: DateTime.UtcNow.AddHours(-1));
+        taskItem.LogHours(userId: userId, hours: 3m, loggedAt: DateTime.UtcNow.AddHours(-1));
+
+        // Assert
+        Assert.Equal(5m, taskItem.LoggedHours);
+    }
+
+    [Fact]
+    public void LogHours_WithValidData_ReturnsTaskLog()
+    {
+        // Arrange
+        var taskItem = CreateTaskItem();
+        var userId = Guid.NewGuid();
+        var loggedAt = DateTime.UtcNow.AddHours(-1);
+
+        // Act
+        var taskLog = taskItem.LogHours(userId: userId, hours: 2m, loggedAt: loggedAt);
+
+        // Assert
+        Assert.Equal(taskItem.Id, taskLog.TaskItemId);
+        Assert.Equal(userId, taskLog.UserId);
+        Assert.Equal(2m, taskLog.HoursLogged);
+        Assert.Equal(loggedAt, taskLog.LoggedAt);
+        Assert.NotNull(taskItem.UpdatedAt);
+    }
+
     private static TaskItem CreateTaskItem(
      string title = "Valid title",
      TaskPriority priority = TaskPriority.Medium,
