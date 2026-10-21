@@ -13,6 +13,7 @@ public class GlobalExceptionHandler : IExceptionHandler
         {
             DomainException => StatusCodes.Status400BadRequest,
             NotFoundException => StatusCodes.Status404NotFound,
+            OperationCanceledException => StatusCodes.Status499ClientClosedRequest,
             _ => null
         };
 
@@ -22,6 +23,12 @@ public class GlobalExceptionHandler : IExceptionHandler
         }
 
         httpContext.Response.StatusCode = statusCode.Value;
+
+        if (statusCode == StatusCodes.Status499ClientClosedRequest)
+        {
+            return true;
+        }
+
         await httpContext.Response.WriteAsJsonAsync(new { message = exception.Message }, cancellationToken);
 
         return true;
