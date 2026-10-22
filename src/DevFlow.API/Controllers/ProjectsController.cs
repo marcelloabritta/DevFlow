@@ -22,7 +22,7 @@ public class ProjectsController : ControllerBase
     public async Task<IActionResult> Create(CreateProjectRequest request, CancellationToken cancellationToken)
     {
         var id = await _service.CreateAsync(request.Name, request.Description, request.OwnerId, cancellationToken);
-        return Created($"/api/projects/{id}", id);
+        return CreatedAtAction(nameof(GetById), new { id }, id);
     }
 
     [HttpGet("{id}")]
