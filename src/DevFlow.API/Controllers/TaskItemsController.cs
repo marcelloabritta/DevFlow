@@ -1,4 +1,5 @@
 using DevFlow.API.Requests;
+using DevFlow.API.Responses;
 using DevFlow.Application.Services;
 
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +21,14 @@ public class TaskItemsController : ControllerBase
     public async Task<IActionResult> Create(CreateTaskItemRequest request, CancellationToken cancellationToken)
     {
         var id = await _service.CreateAsync(request.ToCommand(), cancellationToken);
-        return Created($"/api/taskitems/{id}", id);
+        return CreatedAtAction(nameof(GetById), new { id }, id);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+    {
+        var taskItem = await _service.GetByIdAsync(id, cancellationToken);
+        var response = TaskItemResponse.FromEntity(taskItem);
+        return Ok(response);
     }
 }

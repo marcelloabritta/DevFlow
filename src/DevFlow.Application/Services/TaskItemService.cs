@@ -47,4 +47,15 @@ public class TaskItemService
         await _taskItemRepository.AddAsync(taskItem, cancellationToken);
         return taskItem.Id;
     }
+
+    public async Task<TaskItem> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var taskItem = await _taskItemRepository.GetByIdAsync(id, cancellationToken);
+        if (taskItem is null)
+        {
+            throw new NotFoundException($"The task with id {id} does not exist.");
+        }
+
+        return taskItem;
+    }
 }

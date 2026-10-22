@@ -1,6 +1,8 @@
 using DevFlow.Application.Interfaces;
 using DevFlow.Domain.Entities;
 
+using Microsoft.EntityFrameworkCore;
+
 namespace DevFlow.Infrastructure.Persistence.Repositories;
 
 public class TaskItemRepository : ITaskItemRepository
@@ -16,5 +18,10 @@ public class TaskItemRepository : ITaskItemRepository
     {
         await _context.TaskItems.AddAsync(taskItem, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<TaskItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await _context.TaskItems.FirstOrDefaultAsync(ti => ti.Id == id, cancellationToken);
     }
 }
