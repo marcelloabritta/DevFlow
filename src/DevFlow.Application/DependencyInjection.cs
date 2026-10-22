@@ -10,6 +10,8 @@ public static class DependencyInjection
         this IServiceCollection services)
     {
         services.AddScoped<ProjectService>();
+        services.AddScoped<TaskItemService>();
+
         return services;
     }
 }

@@ -25,6 +25,11 @@ public class ProjectRepository : IProjectRepository
         return await _context.Projects.CountAsync(cancellationToken);
     }
 
+    public async Task<bool> ExistsAsync(Guid projectId, CancellationToken cancellationToken)
+    {
+        return await _context.Projects.AnyAsync(p => p.Id == projectId, cancellationToken);
+    }
+
     public async Task<IEnumerable<Project>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken)
     {
         return await _context.Projects

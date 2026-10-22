@@ -9,4 +9,5 @@ public interface IProjectRepository
     Task<IEnumerable<Project>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken);
     Task<int> CountAsync(CancellationToken cancellationToken);
     Task UpdateAsync(Project project, CancellationToken cancellationToken);
+    Task<bool> ExistsAsync(Guid projectId, CancellationToken cancellationToken);
 }
