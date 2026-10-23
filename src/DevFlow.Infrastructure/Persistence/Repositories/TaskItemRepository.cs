@@ -20,6 +20,23 @@ public class TaskItemRepository : ITaskItemRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<int> CountAsync(Guid projectId, CancellationToken cancellationToken)
+    {
+        return await _context.TaskItems.Where(t => t.ProjectId == projectId)
+                                       .CountAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<TaskItem>> GetAllAsync(Guid projectId, int page, int pageSize, CancellationToken cancellationToken)
+    {
+        return await _context.TaskItems
+                             .AsNoTracking()
+                             .Where(t => t.ProjectId == projectId)
+                             .OrderByDescending(t => t.CreatedAt)
+                             .Skip((page - 1) * pageSize)
+                             .Take(pageSize)
+                             .ToListAsync(cancellationToken);
+    }
+
     public async Task<TaskItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _context.TaskItems.FirstOrDefaultAsync(ti => ti.Id == id, cancellationToken);

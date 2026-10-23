@@ -1,4 +1,5 @@
 using DevFlow.Application.Commands;
+using DevFlow.Application.Common;
 using DevFlow.Application.Exceptions;
 using DevFlow.Application.Interfaces;
 using DevFlow.Domain.Entities;
@@ -57,5 +58,21 @@ public class TaskItemService
         }
 
         return taskItem;
+    }
+
+    public async Task<PagedResult<TaskItem>> GetAllAsync(Guid projectId, int page, int pageSize, CancellationToken cancellationToken)
+    {
+        var projectExists = await _projectRepository.ExistsAsync(projectId, cancellationToken);
+        if (!projectExists)
+        {
+            throw new NotFoundException($"The project with id {projectId} does not exist.");
+        }
+
+        var (normalizedPage, normalizedPageSize) = Pagination.Normalize(page, pageSize);
+
+        var taskItems = await _taskItemRepository.GetAllAsync(projectId, normalizedPage, normalizedPageSize, cancellationToken);
+        var total = await _taskItemRepository.CountAsync(projectId, cancellationToken);
+
+        return new PagedResult<TaskItem>(taskItems, normalizedPage, normalizedPageSize, total);
     }
 }
