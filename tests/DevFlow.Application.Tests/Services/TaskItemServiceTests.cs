@@ -104,14 +104,7 @@ public class TaskItemServiceTests
     public async Task GetByIdAsync_WithExistingId_ReturnsTaskItem()
     {
         // Arrange
-        var taskItem = new TaskItem(
-            "Valid title",
-            "Any description",
-            TaskPriority.Medium,
-            5m,
-            Guid.NewGuid(),
-            null,
-            null);
+        var taskItem = CreateTaskItem();
 
         _taskItemRepositoryMock.Setup(repo => repo.GetByIdAsync(taskItem.Id, It.IsAny<CancellationToken>()))
                                .ReturnsAsync(taskItem);
@@ -121,6 +114,68 @@ public class TaskItemServiceTests
 
         // Assert
         Assert.Same(taskItem, result);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithNonexistentProject_ThrowsNotFoundException()
+    {
+        // Arrange
+        _projectRepositoryMock.Setup(repo => repo.ExistsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                              .ReturnsAsync(false);
+        // Act & Assert
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.GetAllAsync(Guid.NewGuid(), 1, 10, CancellationToken.None));
+        _taskItemRepositoryMock.Verify(
+            repo => repo.GetAllAsync(It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithExistingProject_ReturnsPagedResult()
+    {
+        // Arrange
+        var projectId = Guid.NewGuid();
+        var page = 2;
+        var pageSize = 20;
+        var taskItem = CreateTaskItem(projectId);
+
+        var taskItems = new List<TaskItem> { taskItem };
+
+        _projectRepositoryMock.Setup(repo => repo.ExistsAsync(projectId, It.IsAny<CancellationToken>()))
+                      .ReturnsAsync(true);
+        _taskItemRepositoryMock.Setup(repo => repo.GetAllAsync(projectId, page, pageSize, It.IsAny<CancellationToken>()))
+                                               .ReturnsAsync(taskItems);
+        _taskItemRepositoryMock.Setup(repo => repo.CountAsync(projectId, It.IsAny<CancellationToken>()))
+                       .ReturnsAsync(35);
+
+        // Act
+        var result = await _service.GetAllAsync(projectId, page, pageSize, CancellationToken.None);
+
+        // Assert 
+        Assert.Same(taskItems, result.Items);
+        Assert.Equal(35, result.TotalItems);
+        Assert.Equal(page, result.Page);
+        Assert.Equal(pageSize, result.PageSize);
+
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithOutOfRangePagination_NormalizesValues()
+    {
+        // Arrange
+        var projectId = Guid.NewGuid();
+        _projectRepositoryMock.Setup(repo => repo.ExistsAsync(projectId, It.IsAny<CancellationToken>()))
+              .ReturnsAsync(true);
+        _taskItemRepositoryMock.Setup(repo => repo.GetAllAsync(projectId, 1, 50, It.IsAny<CancellationToken>()))
+                       .ReturnsAsync(new List<TaskItem>());
+        _taskItemRepositoryMock.Setup(repo => repo.CountAsync(projectId, It.IsAny<CancellationToken>()))
+               .ReturnsAsync(35);
+
+        // Act
+        var result = await _service.GetAllAsync(projectId, 0, 51, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(1, result.Page);
+        Assert.Equal(50, result.PageSize);
     }
 
     private static CreateTaskItemCommand CreateCommand(
@@ -135,6 +190,18 @@ public class TaskItemServiceTests
         ProjectId: projectId ?? Guid.NewGuid(),
         AssignedToUserId: assignedToUserId,
         DueDate: null);
+    }
+
+    private static TaskItem CreateTaskItem(Guid? projectId = null)
+    {
+        return new TaskItem(
+            "Valid title",
+            "Any description",
+            TaskPriority.Medium,
+            5m,
+            projectId ?? Guid.NewGuid(),
+            null,
+            null);
     }
 
 }
