@@ -1,5 +1,6 @@
 using DevFlow.API.Requests;
 using DevFlow.API.Responses;
+using DevFlow.Application.Common;
 using DevFlow.Application.Services;
 
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,20 @@ public class TaskItemsController : ControllerBase
     {
         var taskItem = await _service.GetByIdAsync(id, cancellationToken);
         var response = TaskItemResponse.FromEntity(taskItem);
+        return Ok(response);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll(Guid projectId, int page = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+    {
+        var result = await _service.GetAllAsync(projectId, page, pageSize, cancellationToken);
+
+        var response = new PagedResult<TaskItemResponse>(
+                    result.Items.Select(TaskItemResponse.FromEntity),
+                    result.Page,
+                    result.PageSize,
+                    result.TotalItems);
+
         return Ok(response);
     }
 }
