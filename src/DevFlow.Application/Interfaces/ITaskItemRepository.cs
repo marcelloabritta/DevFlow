@@ -8,4 +8,5 @@ public interface ITaskItemRepository
     Task<TaskItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
     Task<IEnumerable<TaskItem>> GetAllAsync(Guid projectId, int page, int pageSize, CancellationToken cancellationToken);
     Task<int> CountAsync(Guid projectId, CancellationToken cancellationToken);
+    Task UpdateAsync(TaskItem taskItem, CancellationToken cancellationToken);
 }

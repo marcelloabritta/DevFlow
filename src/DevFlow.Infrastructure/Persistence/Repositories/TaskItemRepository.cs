@@ -41,4 +41,9 @@ public class TaskItemRepository : ITaskItemRepository
     {
         return await _context.TaskItems.FirstOrDefaultAsync(ti => ti.Id == id, cancellationToken);
     }
+
+    public async Task UpdateAsync(TaskItem taskItem, CancellationToken cancellationToken)
+    {
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }

@@ -3,6 +3,7 @@ using DevFlow.Application.Common;
 using DevFlow.Application.Exceptions;
 using DevFlow.Application.Interfaces;
 using DevFlow.Domain.Entities;
+using DevFlow.Domain.Enums;
 
 namespace DevFlow.Application.Services;
 
@@ -74,5 +75,18 @@ public class TaskItemService
         var total = await _taskItemRepository.CountAsync(projectId, cancellationToken);
 
         return new PagedResult<TaskItem>(taskItems, normalizedPage, normalizedPageSize, total);
+    }
+
+    public async Task UpdateAsync(Guid id, UpdateTaskItemCommand command, CancellationToken cancellationToken)
+    {
+        var taskItem = await GetByIdAsync(id, cancellationToken);
+        taskItem.Update(
+            title: command.Title,
+            description: command.Description,
+            priority: command.Priority,
+            estimatedHours:
+            command.EstimatedHours,
+            dueDate: command.DueDate);
+        await _taskItemRepository.UpdateAsync(taskItem, cancellationToken);
     }
 }
