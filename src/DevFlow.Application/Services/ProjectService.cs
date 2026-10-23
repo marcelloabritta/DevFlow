@@ -7,9 +7,6 @@ namespace DevFlow.Application.Services;
 
 public class ProjectService
 {
-    private const int MaxPageSize = 50;
-    private const int FirstPage = 1;
-    private const int DefaultPageSize = 10;
     private readonly IProjectRepository _projectRepository;
     private readonly IUserRepository _userRepository;
 
@@ -46,26 +43,13 @@ public class ProjectService
 
     public async Task<PagedResult<Project>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken)
     {
-        if (page < FirstPage)
-        {
-            page = FirstPage;
-        }
-
-        if (pageSize < 1)
-        {
-            pageSize = DefaultPageSize;
-        }
-
-        if (pageSize > MaxPageSize)
-        {
-            pageSize = MaxPageSize;
-        }
+        var (normalizedPage, normalizedPageSize) = Pagination.Normalize(page, pageSize);
 
 
-        var projects = await _projectRepository.GetAllAsync(page, pageSize, cancellationToken);
+        var projects = await _projectRepository.GetAllAsync(normalizedPage, normalizedPageSize, cancellationToken);
         var total = await _projectRepository.CountAsync(cancellationToken);
 
-        return new PagedResult<Project>(projects, page, pageSize, total);
+        return new PagedResult<Project>(projects, normalizedPage, normalizedPageSize, total);
     }
 
     public async Task UpdateAsync(Guid id, string name, string? description, CancellationToken cancellationToken)
