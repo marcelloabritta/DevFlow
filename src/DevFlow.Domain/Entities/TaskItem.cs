@@ -46,6 +46,17 @@ public class TaskItem : BaseEntity
         return log;
     }
 
+    public void Update(string title, string? description, TaskPriority priority, decimal estimatedHours, DateTime? dueDate)
+    {
+        Validate(title, priority, estimatedHours);
+        Title = title;
+        Description = description;
+        Priority = priority;
+        EstimatedHours = estimatedHours;
+        DueDate = dueDate;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     private static void Validate(string title, TaskPriority priority, decimal estimatedHours)
     {
         if (string.IsNullOrWhiteSpace(title))
@@ -63,4 +74,6 @@ public class TaskItem : BaseEntity
             throw new DomainException("Estimated hours must be greater than zero.");
         }
     }
+
+
 }

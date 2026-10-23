@@ -94,6 +94,49 @@ public class TaskItemTests
         Assert.NotNull(taskItem.UpdatedAt);
     }
 
+    [Fact]
+    public void Update_WithValidData_UpdatesFields()
+    {
+        // Arrange
+        var taskItem = CreateTaskItem();
+        var dueDate = DateTime.UtcNow.AddDays(20);
+
+        // Act
+        taskItem.Update(
+            title: "Updated title",
+            priority: TaskPriority.High,
+            estimatedHours: 8m,
+            description: "Updated description",
+            dueDate: dueDate);
+
+        // Assert
+        Assert.Equal("Updated title", taskItem.Title);
+        Assert.Equal(TaskPriority.High, taskItem.Priority);
+        Assert.Equal(8m, taskItem.EstimatedHours);
+        Assert.Equal("Updated description", taskItem.Description);
+        Assert.Equal(dueDate, taskItem.DueDate);
+        Assert.NotNull(taskItem.UpdatedAt);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public void Update_WithInvalidTitle_ThrowsDomainException(string? title)
+    {
+        // Arrange
+        var taskItem = CreateTaskItem();
+        var dueDate = DateTime.UtcNow.AddDays(20);
+
+        // Act & Assert
+        Assert.Throws<DomainException>(() => taskItem.Update(
+            title: title!,
+            priority: TaskPriority.High,
+            estimatedHours: 8m,
+            description: "Updated description",
+            dueDate: dueDate));
+    }
+
     private static TaskItem CreateTaskItem(
      string title = "Valid title",
      TaskPriority priority = TaskPriority.Medium,
