@@ -178,6 +178,37 @@ public class TaskItemServiceTests
         Assert.Equal(50, result.PageSize);
     }
 
+    [Fact]
+    public async Task UpdateAsync_WithNonexistentId_ThrowsNotFoundException()
+    {
+        // Arrange
+        _taskItemRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                               .ReturnsAsync((TaskItem?)null);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateAsync(Guid.NewGuid(), CreateUpdateCommand(), CancellationToken.None));
+        _taskItemRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<TaskItem>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithExistingId_UpdatesAndSavesTaskItem()
+    {
+        // Arrange
+        var taskItem = CreateTaskItem();
+        _taskItemRepositoryMock.Setup(repo => repo.GetByIdAsync(taskItem.Id, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync(taskItem);
+
+        // Act
+        await _service.UpdateAsync(taskItem.Id, CreateUpdateCommand(), CancellationToken.None);
+
+        // Assert
+        Assert.Equal("Updated title", taskItem.Title);
+        Assert.Equal("Updated description", taskItem.Description);
+        Assert.Equal(TaskPriority.High, taskItem.Priority);
+        Assert.Equal(8m, taskItem.EstimatedHours);
+        _taskItemRepositoryMock.Verify(repo => repo.UpdateAsync(taskItem, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     private static CreateTaskItemCommand CreateCommand(
     Guid? projectId = null,
     Guid? assignedToUserId = null)
@@ -202,6 +233,16 @@ public class TaskItemServiceTests
             projectId ?? Guid.NewGuid(),
             null,
             null);
+    }
+
+    private static UpdateTaskItemCommand CreateUpdateCommand()
+    {
+        return new UpdateTaskItemCommand(
+            Title: "Updated title",
+            Description: "Updated description",
+            Priority: TaskPriority.High,
+            EstimatedHours: 8m,
+            DueDate: null);
     }
 
 }
