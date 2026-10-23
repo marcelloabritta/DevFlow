@@ -18,20 +18,7 @@ public class TaskItem : BaseEntity
 
     public TaskItem(string title, string? description, TaskPriority priority, decimal estimatedHours, Guid projectId, Guid? assignedToUserId, DateTime? dueDate)
     {
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            throw new DomainException("The task title is required.");
-        }
-
-        if (!Enum.IsDefined(priority))
-        {
-            throw new DomainException("Invalid task priority.");
-        }
-
-        if (estimatedHours <= 0)
-        {
-            throw new DomainException("Estimated hours must be greater than zero.");
-        }
+        Validate(title, priority, estimatedHours);
 
         if (projectId == Guid.Empty)
         {
@@ -57,5 +44,23 @@ public class TaskItem : BaseEntity
         UpdatedAt = DateTime.UtcNow;
 
         return log;
+    }
+
+    private static void Validate(string title, TaskPriority priority, decimal estimatedHours)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            throw new DomainException("The task title is required.");
+        }
+
+        if (!Enum.IsDefined(priority))
+        {
+            throw new DomainException("Invalid task priority.");
+        }
+
+        if (estimatedHours <= 0)
+        {
+            throw new DomainException("Estimated hours must be greater than zero.");
+        }
     }
 }
