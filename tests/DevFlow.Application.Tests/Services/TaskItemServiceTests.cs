@@ -143,11 +143,11 @@ public class TaskItemServiceTests
         var taskItems = new List<TaskItem> { taskItem };
 
         _projectRepositoryMock.Setup(repo => repo.ExistsAsync(projectId, It.IsAny<CancellationToken>()))
-                      .ReturnsAsync(true);
+                              .ReturnsAsync(true);
         _taskItemRepositoryMock.Setup(repo => repo.GetAllAsync(projectId, page, pageSize, It.IsAny<CancellationToken>()))
-                                               .ReturnsAsync(taskItems);
+                               .ReturnsAsync(taskItems);
         _taskItemRepositoryMock.Setup(repo => repo.CountAsync(projectId, It.IsAny<CancellationToken>()))
-                       .ReturnsAsync(35);
+                               .ReturnsAsync(35);
 
         // Act
         var result = await _service.GetAllAsync(projectId, page, pageSize, CancellationToken.None);
@@ -246,7 +246,7 @@ public class TaskItemServiceTests
     {
         // Arrange 
         _taskItemRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-                       .ReturnsAsync((TaskItem?)null);
+                               .ReturnsAsync((TaskItem?)null);
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() => _service.LogHoursAsync(Guid.NewGuid(), CreateLogHoursCommand(), CancellationToken.None));
@@ -274,7 +274,7 @@ public class TaskItemServiceTests
         var taskItem = CreateTaskItem();
         var command = CreateLogHoursCommand();
         _taskItemRepositoryMock.Setup(repo => repo.GetByIdAsync(taskItem.Id, It.IsAny<CancellationToken>()))
-                       .ReturnsAsync(taskItem);
+                               .ReturnsAsync(taskItem);
         _userRepositoryMock.Setup(repo => repo.ExistsAsync(command.UserId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -284,6 +284,34 @@ public class TaskItemServiceTests
         // Assert
         Assert.Equal(command.Hours, taskItem.LoggedHours);
         _taskLogRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<TaskLog>(), It.IsAny<CancellationToken>()), Times.Once);
+        _taskItemRepositoryMock.Verify(repo => repo.UpdateAsync(taskItem, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ChangeStatusAsync_WithNonexistentId_ThrowsNotFoundException()
+    {
+        // Arrange
+        _taskItemRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                               .ReturnsAsync((TaskItem?)null);
+
+        // Act & Assert 
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.ChangeStatusAsync(Guid.NewGuid(), TaskItemStatus.InProgress, CancellationToken.None));
+        _taskItemRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<TaskItem>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ChangeStatusAsync_WithExistingId_ChangesStatusAndSaves()
+    {
+        // Arrange 
+        var taskItem = CreateTaskItem();
+        _taskItemRepositoryMock.Setup(repo => repo.GetByIdAsync(taskItem.Id, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync(taskItem);
+
+        // Act
+        await _service.ChangeStatusAsync(taskItem.Id, TaskItemStatus.InProgress, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(TaskItemStatus.InProgress, taskItem.Status);
         _taskItemRepositoryMock.Verify(repo => repo.UpdateAsync(taskItem, It.IsAny<CancellationToken>()), Times.Once);
     }
 
