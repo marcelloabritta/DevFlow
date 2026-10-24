@@ -32,5 +32,7 @@ public class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
                .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasQueryFilter(t => !t.IsDeleted);
+
+        builder.HasIndex(t => new { t.ProjectId, t.CreatedAt });
     }
 }
