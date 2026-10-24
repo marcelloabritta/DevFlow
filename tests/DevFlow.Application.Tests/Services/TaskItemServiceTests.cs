@@ -209,6 +209,36 @@ public class TaskItemServiceTests
         _taskItemRepositoryMock.Verify(repo => repo.UpdateAsync(taskItem, It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task DeleteAsync_WithNonexistentId_ThrowsNotFoundException()
+    {
+        // Arrange
+        _taskItemRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                               .ReturnsAsync((TaskItem?)null);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.DeleteAsync(Guid.NewGuid(), CancellationToken.None));
+        _taskItemRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<TaskItem>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithExistingId_MarksTaskItemAsDeleted()
+    {
+        // Arrange 
+        var taskItem = CreateTaskItem();
+        _taskItemRepositoryMock.Setup(repo => repo.GetByIdAsync(taskItem.Id, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync(taskItem);
+        Assert.False(taskItem.IsDeleted);
+
+        // Act
+        await _service.DeleteAsync(taskItem.Id, CancellationToken.None);
+
+        // Assert
+        Assert.True(taskItem.IsDeleted);
+        _taskItemRepositoryMock.Verify(repo => repo.UpdateAsync(taskItem, It.IsAny<CancellationToken>()), Times.Once);
+
+    }
+
     private static CreateTaskItemCommand CreateCommand(
     Guid? projectId = null,
     Guid? assignedToUserId = null)
