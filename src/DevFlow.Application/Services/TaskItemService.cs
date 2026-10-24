@@ -3,7 +3,6 @@ using DevFlow.Application.Common;
 using DevFlow.Application.Exceptions;
 using DevFlow.Application.Interfaces;
 using DevFlow.Domain.Entities;
-using DevFlow.Domain.Enums;
 
 namespace DevFlow.Application.Services;
 
@@ -12,12 +11,14 @@ public class TaskItemService
     private readonly IProjectRepository _projectRepository;
     private readonly IUserRepository _userRepository;
     private readonly ITaskItemRepository _taskItemRepository;
+    private readonly ITaskLogRepository _taskLogRepository;
 
-    public TaskItemService(IProjectRepository projectRepository, IUserRepository userRepository, ITaskItemRepository taskItemRepository)
+    public TaskItemService(IProjectRepository projectRepository, IUserRepository userRepository, ITaskItemRepository taskItemRepository, ITaskLogRepository taskLogRepository)
     {
         _projectRepository = projectRepository;
         _userRepository = userRepository;
         _taskItemRepository = taskItemRepository;
+        _taskLogRepository = taskLogRepository;
     }
 
     public async Task<Guid> CreateAsync(CreateTaskItemCommand command, CancellationToken cancellationToken)
@@ -84,8 +85,7 @@ public class TaskItemService
             title: command.Title,
             description: command.Description,
             priority: command.Priority,
-            estimatedHours:
-            command.EstimatedHours,
+            estimatedHours: command.EstimatedHours,
             dueDate: command.DueDate);
         await _taskItemRepository.UpdateAsync(taskItem, cancellationToken);
     }
@@ -94,6 +94,20 @@ public class TaskItemService
     {
         var taskItem = await GetByIdAsync(id, cancellationToken);
         taskItem.MarkAsDeleted();
+        await _taskItemRepository.UpdateAsync(taskItem, cancellationToken);
+    }
+
+    public async Task LogHoursAsync(Guid id, LogHoursCommand command, CancellationToken cancellationToken)
+    {
+        var taskItem = await GetByIdAsync(id, cancellationToken);
+        var userExists = await _userRepository.ExistsAsync(command.UserId, cancellationToken);
+        if (!userExists)
+        {
+            throw new NotFoundException($"The user with id {command.UserId} does not exist.");
+        }
+
+        var taskLog = taskItem.LogHours(userId: command.UserId, hours: command.Hours, loggedAt: command.LoggedAt);
+        await _taskLogRepository.AddAsync(taskLog, cancellationToken);
         await _taskItemRepository.UpdateAsync(taskItem, cancellationToken);
     }
 }
