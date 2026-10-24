@@ -73,4 +73,12 @@ public class TaskItemsController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> ChangeStatus(Guid id, ChangeStatusRequest request, CancellationToken cancellationToken)
+    {
+        await _service.ChangeStatusAsync(id, request.Status, cancellationToken);
+
+        return NoContent();
+    }
 }
