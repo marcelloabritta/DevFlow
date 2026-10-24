@@ -46,4 +46,15 @@ public class TaskItemsController : ControllerBase
 
         return Ok(response);
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(Guid id, UpdateTaskItemRequest request, CancellationToken cancellationToken)
+    {
+        await _service.UpdateAsync(
+            id,
+            request.ToCommand(),
+            cancellationToken);
+
+        return NoContent();
+    }
 }
