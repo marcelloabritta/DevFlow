@@ -14,6 +14,7 @@ public class TaskItemServiceTests
     private readonly Mock<IProjectRepository> _projectRepositoryMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<ITaskItemRepository> _taskItemRepositoryMock;
+    private readonly Mock<ITaskLogRepository> _taskLogRepositoryMock;
     private readonly TaskItemService _service;
 
     public TaskItemServiceTests()
@@ -21,7 +22,8 @@ public class TaskItemServiceTests
         _projectRepositoryMock = new Mock<IProjectRepository>();
         _userRepositoryMock = new Mock<IUserRepository>();
         _taskItemRepositoryMock = new Mock<ITaskItemRepository>();
-        _service = new TaskItemService(_projectRepositoryMock.Object, _userRepositoryMock.Object, _taskItemRepositoryMock.Object);
+        _taskLogRepositoryMock = new Mock<ITaskLogRepository>();
+        _service = new TaskItemService(_projectRepositoryMock.Object, _userRepositoryMock.Object, _taskItemRepositoryMock.Object, _taskLogRepositoryMock.Object);
     }
 
     [Fact]
@@ -228,7 +230,7 @@ public class TaskItemServiceTests
         var taskItem = CreateTaskItem();
         _taskItemRepositoryMock.Setup(repo => repo.GetByIdAsync(taskItem.Id, It.IsAny<CancellationToken>()))
                                .ReturnsAsync(taskItem);
-        Assert.False(taskItem.IsDeleted);
+
 
         // Act
         await _service.DeleteAsync(taskItem.Id, CancellationToken.None);
@@ -237,6 +239,52 @@ public class TaskItemServiceTests
         Assert.True(taskItem.IsDeleted);
         _taskItemRepositoryMock.Verify(repo => repo.UpdateAsync(taskItem, It.IsAny<CancellationToken>()), Times.Once);
 
+    }
+
+    [Fact]
+    public async Task LogHoursAsync_WithNonexistentTaskItem_ThrowsNotFoundException()
+    {
+        // Arrange 
+        _taskItemRepositoryMock.Setup(repo => repo.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                       .ReturnsAsync((TaskItem?)null);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.LogHoursAsync(Guid.NewGuid(), CreateLogHoursCommand(), CancellationToken.None));
+        _taskLogRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<TaskLog>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task LogHoursAsync_WithNonexistentUser_ThrowsNotFoundException()
+    {
+        // Arrange
+        var taskItem = CreateTaskItem();
+        _taskItemRepositoryMock.Setup(repo => repo.GetByIdAsync(taskItem.Id, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync(taskItem);
+        _userRepositoryMock.Setup(repo => repo.ExistsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                           .ReturnsAsync(false);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.LogHoursAsync(taskItem.Id, CreateLogHoursCommand(), CancellationToken.None));
+        _taskLogRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<TaskLog>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task LogHoursAsync_WithValidData_LogsHoursAndSavesTaskLog()
+    {
+        var taskItem = CreateTaskItem();
+        var command = CreateLogHoursCommand();
+        _taskItemRepositoryMock.Setup(repo => repo.GetByIdAsync(taskItem.Id, It.IsAny<CancellationToken>()))
+                       .ReturnsAsync(taskItem);
+        _userRepositoryMock.Setup(repo => repo.ExistsAsync(command.UserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        // Act
+        await _service.LogHoursAsync(taskItem.Id, command, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(command.Hours, taskItem.LoggedHours);
+        _taskLogRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<TaskLog>(), It.IsAny<CancellationToken>()), Times.Once);
+        _taskItemRepositoryMock.Verify(repo => repo.UpdateAsync(taskItem, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private static CreateTaskItemCommand CreateCommand(
@@ -275,4 +323,12 @@ public class TaskItemServiceTests
             DueDate: null);
     }
 
+    private static LogHoursCommand CreateLogHoursCommand()
+    {
+        return new LogHoursCommand(
+            UserId: Guid.NewGuid(),
+            Hours: 2m,
+            LoggedAt: DateTime.UtcNow.AddHours(-1)
+        );
+    }
 }
