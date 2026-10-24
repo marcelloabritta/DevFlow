@@ -89,4 +89,11 @@ public class TaskItemService
             dueDate: command.DueDate);
         await _taskItemRepository.UpdateAsync(taskItem, cancellationToken);
     }
+
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var taskItem = await GetByIdAsync(id, cancellationToken);
+        taskItem.MarkAsDeleted();
+        await _taskItemRepository.UpdateAsync(taskItem, cancellationToken);
+    }
 }
