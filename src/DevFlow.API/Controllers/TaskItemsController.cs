@@ -65,4 +65,12 @@ public class TaskItemsController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpPost("{id}/logs")]
+    public async Task<IActionResult> LogHours(Guid id, LogHoursRequest request, CancellationToken cancellationToken)
+    {
+        await _service.LogHoursAsync(id, request.ToCommand(), cancellationToken);
+
+        return NoContent();
+    }
 }
