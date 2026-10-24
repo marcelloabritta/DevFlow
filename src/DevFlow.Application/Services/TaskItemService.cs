@@ -3,6 +3,7 @@ using DevFlow.Application.Common;
 using DevFlow.Application.Exceptions;
 using DevFlow.Application.Interfaces;
 using DevFlow.Domain.Entities;
+using DevFlow.Domain.Enums;
 
 namespace DevFlow.Application.Services;
 
@@ -108,6 +109,13 @@ public class TaskItemService
 
         var taskLog = taskItem.LogHours(userId: command.UserId, hours: command.Hours, loggedAt: command.LoggedAt);
         await _taskLogRepository.AddAsync(taskLog, cancellationToken);
+        await _taskItemRepository.UpdateAsync(taskItem, cancellationToken);
+    }
+
+    public async Task ChangeStatusAsync(Guid id, TaskItemStatus newStatus, CancellationToken cancellationToken)
+    {
+        var taskItem = await GetByIdAsync(id, cancellationToken);
+        taskItem.ChangeStatus(newStatus);
         await _taskItemRepository.UpdateAsync(taskItem, cancellationToken);
     }
 }
