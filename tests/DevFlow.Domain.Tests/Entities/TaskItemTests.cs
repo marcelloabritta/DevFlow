@@ -137,6 +137,41 @@ public class TaskItemTests
             dueDate: dueDate));
     }
 
+    [Theory]
+    [InlineData((TaskItemStatus)0)]
+    [InlineData((TaskItemStatus)(-1))]
+    public void ChangeStatus_WithInvalidStatus_ThrowsDomainException(TaskItemStatus status)
+    {
+        // Arrange
+        var taskItem = CreateTaskItem();
+
+        // Act & Assert
+        Assert.Throws<DomainException>(() => taskItem.ChangeStatus(status));
+    }
+
+    [Fact]
+    public void ChangeStatus_WithSameStatus_ThrowsDomainException()
+    {
+        // Arrange
+        var taskItem = CreateTaskItem();
+
+        // Act & Assert
+        Assert.Throws<DomainException>(() => taskItem.ChangeStatus(TaskItemStatus.Backlog));
+    }
+
+    [Fact]
+    public void ChangeStatus_WithValidStatus_UpdatesStatus()
+    {
+        // Arrange
+        var taskItem = CreateTaskItem();
+
+        // Act
+        taskItem.ChangeStatus(TaskItemStatus.InProgress);
+
+        // Assert
+        Assert.Equal(TaskItemStatus.InProgress, taskItem.Status);
+        Assert.NotNull(taskItem.UpdatedAt);
+    }
     private static TaskItem CreateTaskItem(
      string title = "Valid title",
      TaskPriority priority = TaskPriority.Medium,

@@ -57,6 +57,22 @@ public class TaskItem : BaseEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void ChangeStatus(TaskItemStatus newStatus)
+    {
+        if (!Enum.IsDefined(newStatus))
+        {
+            throw new DomainException("Invalid task status.");
+        }
+
+        if (Status == newStatus)
+        {
+            throw new DomainException("The task is already in this status.");
+        }
+
+        Status = newStatus;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     private static void Validate(string title, TaskPriority priority, decimal estimatedHours)
     {
         if (string.IsNullOrWhiteSpace(title))
