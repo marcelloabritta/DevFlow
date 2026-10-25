@@ -153,7 +153,8 @@ public class TaskItemServiceTests
         var result = await _service.GetAllAsync(projectId, page, pageSize, CancellationToken.None);
 
         // Assert 
-        Assert.Same(taskItems, result.Items);
+        var item = Assert.Single(result.Items);
+        Assert.Same(taskItem, item.TaskItem);
         Assert.Equal(35, result.TotalItems);
         Assert.Equal(page, result.Page);
         Assert.Equal(pageSize, result.PageSize);
@@ -178,6 +179,105 @@ public class TaskItemServiceTests
         // Assert
         Assert.Equal(1, result.Page);
         Assert.Equal(50, result.PageSize);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithAssignee_ReturnsAssigneeName()
+    {
+        // Arrange
+        var user = new User(name: "User Name", email: "user@email.com", passwordHash: "PasswordHash", UserRole.Member);
+        var projectId = Guid.NewGuid();
+        var taskItem = CreateTaskItem(projectId: projectId, assignedToUserId: user.Id);
+        _projectRepositoryMock.Setup(repo => repo.ExistsAsync(projectId, It.IsAny<CancellationToken>()))
+                              .ReturnsAsync(true);
+        _userRepositoryMock.Setup(repo => repo.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+                           .ReturnsAsync([user]);
+        _taskItemRepositoryMock.Setup(repo => repo.GetAllAsync(projectId, 1, 10, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync([taskItem]);
+        _taskItemRepositoryMock.Setup(repo => repo.CountAsync(projectId, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync(35);
+
+        // Act
+        var result = await _service.GetAllAsync(projectId, 1, 10, CancellationToken.None);
+
+        // Assert 
+        var item = Assert.Single(result.Items);
+        Assert.Equal("User Name", item.UserName);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithoutAssignee_ReturnsNullAssigneeName()
+    {
+        // Arrange
+        var projectId = Guid.NewGuid();
+        var taskItem = CreateTaskItem(projectId: projectId);
+        _projectRepositoryMock.Setup(repo => repo.ExistsAsync(projectId, It.IsAny<CancellationToken>()))
+                              .ReturnsAsync(true);
+        _taskItemRepositoryMock.Setup(repo => repo.GetAllAsync(projectId, 1, 10, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync([taskItem]);
+        _taskItemRepositoryMock.Setup(repo => repo.CountAsync(projectId, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync(35);
+
+        // Act
+        var result = await _service.GetAllAsync(projectId, 1, 10, CancellationToken.None);
+
+        // Assert 
+        var item = Assert.Single(result.Items);
+        Assert.Null(item.UserName);
+        _userRepositoryMock.Verify(repo => repo.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithDeletedAssignee_ReturnsNullAssigneeName()
+    {
+        // Arrange
+        var projectId = Guid.NewGuid();
+        var taskItem = CreateTaskItem(projectId: projectId, assignedToUserId: Guid.NewGuid());
+        _projectRepositoryMock.Setup(repo => repo.ExistsAsync(projectId, It.IsAny<CancellationToken>()))
+                              .ReturnsAsync(true);
+        _userRepositoryMock.Setup(repo => repo.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+                           .ReturnsAsync([]);
+        _taskItemRepositoryMock.Setup(repo => repo.GetAllAsync(projectId, 1, 10, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync([taskItem]);
+        _taskItemRepositoryMock.Setup(repo => repo.CountAsync(projectId, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync(35);
+
+        // Act
+        var result = await _service.GetAllAsync(projectId, 1, 10, CancellationToken.None);
+
+        // Assert 
+        var item = Assert.Single(result.Items);
+        Assert.Null(item.UserName);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithMultipleTasks_FetchesAssigneesOnce()
+    {
+        // Arrange
+        var user = new User(name: "User Name", email: "user@email.com", passwordHash: "PasswordHash", UserRole.Member);
+        var projectId = Guid.NewGuid();
+        var t1 = CreateTaskItem(projectId: projectId, assignedToUserId: user.Id);
+        var t2 = CreateTaskItem(projectId: projectId, assignedToUserId: user.Id);
+        var t3 = CreateTaskItem(projectId: projectId, assignedToUserId: user.Id);
+        var taskItems = new List<TaskItem> { t1, t2, t3 };
+        _projectRepositoryMock.Setup(repo => repo.ExistsAsync(projectId, It.IsAny<CancellationToken>()))
+                              .ReturnsAsync(true);
+        _userRepositoryMock.Setup(repo => repo.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+                           .ReturnsAsync([user]);
+        _taskItemRepositoryMock.Setup(repo => repo.GetAllAsync(projectId, 1, 10, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync(taskItems);
+        _taskItemRepositoryMock.Setup(repo => repo.CountAsync(projectId, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync(3);
+
+        // Act
+        var result = await _service.GetAllAsync(projectId, 1, 10, CancellationToken.None);
+
+        // Assert 
+        Assert.Equal(3, result.Items.Count());
+        Assert.All(result.Items, i => Assert.Equal("User Name", i.UserName));
+        _userRepositoryMock.Verify(
+            repo => repo.GetByIdsAsync(It.Is<IEnumerable<Guid>>(ids => ids.Count() == 1), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -315,6 +415,8 @@ public class TaskItemServiceTests
         _taskItemRepositoryMock.Verify(repo => repo.UpdateAsync(taskItem, It.IsAny<CancellationToken>()), Times.Once);
     }
 
+
+
     private static CreateTaskItemCommand CreateCommand(
     Guid? projectId = null,
     Guid? assignedToUserId = null)
@@ -329,7 +431,7 @@ public class TaskItemServiceTests
         DueDate: null);
     }
 
-    private static TaskItem CreateTaskItem(Guid? projectId = null)
+    private static TaskItem CreateTaskItem(Guid? projectId = null, Guid? assignedToUserId = null)
     {
         return new TaskItem(
             "Valid title",
@@ -337,7 +439,7 @@ public class TaskItemServiceTests
             TaskPriority.Medium,
             5m,
             projectId ?? Guid.NewGuid(),
-            null,
+            assignedToUserId: assignedToUserId,
             null);
     }
 
