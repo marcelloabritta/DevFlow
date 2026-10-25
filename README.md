@@ -81,12 +81,19 @@ A API sobe em `http://localhost:5120`.
 
 ## Endpoints
 
-| Método | Rota                               | Descrição                          | Sucesso |
-| ------ | ---------------------------------- | ---------------------------------- | ------- |
-| POST   | `/api/projects`                    | Cria um projeto                    | 201     |
-| GET    | `/api/projects?page=1&pageSize=10` | Lista projetos (paginado, máx. 50) | 200     |
-| GET    | `/api/projects/{id}`               | Busca um projeto pelo id           | 200     |
-| PUT    | `/api/projects/{id}`               | Edita nome e descrição             | 204     |
-| DELETE | `/api/projects/{id}`               | Exclui um projeto (soft delete)    | 204     |
+| Método | Rota                                               | Descrição                                           | Sucesso |
+| ------ | -------------------------------------------------- | --------------------------------------------------- | ------- |
+| POST   | `/api/projects`                                    | Cria um projeto                                     | 201     |
+| GET    | `/api/projects?page=1&pageSize=10`                 | Lista projetos (paginado, máx. 50)                  | 200     |
+| GET    | `/api/projects/{id}`                               | Busca um projeto pelo id                            | 200     |
+| PUT    | `/api/projects/{id}`                               | Edita nome e descrição                              | 204     |
+| DELETE | `/api/projects/{id}`                               | Exclui um projeto (soft delete)                     | 204     |
+| POST   | `/api/taskitems`                                   | Cria uma tarefa                                     | 201     |
+| GET    | `/api/taskitems?projectId={id}&page=1&pageSize=10` | Lista tarefas do projeto, com responsável (máx. 50) | 200     |
+| GET    | `/api/taskitems/{id}`                              | Busca uma tarefa pelo id                            | 200     |
+| PUT    | `/api/taskitems/{id}`                              | Edita título, descrição, prioridade, horas e prazo  | 204     |
+| DELETE | `/api/taskitems/{id}`                              | Exclui uma tarefa (soft delete)                     | 204     |
+| POST   | `/api/taskitems/{id}/logs`                         | Registra horas trabalhadas na tarefa                | 204     |
+| PATCH  | `/api/taskitems/{id}/status`                       | Muda o status da tarefa                             | 204     |
 
 Erros seguem o padrão: **400** para dados inválidos e **404** para recurso inexistente.
