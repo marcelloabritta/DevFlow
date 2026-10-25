@@ -38,8 +38,8 @@ public class ProjectsController : ControllerBase
     {
         var result = await _service.GetAllAsync(page, pageSize, cancellationToken);
 
-        var response = new PagedResult<ProjectResponse>(
-                    result.Items.Select(ProjectResponse.FromEntity),
+        var response = new PagedResult<ProjectWithOwnerResponse>(
+                    result.Items.Select(ProjectWithOwnerResponse.FromModel),
                     result.Page,
                     result.PageSize,
                     result.TotalItems);

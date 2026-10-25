@@ -41,15 +41,28 @@ public class ProjectService
         return project;
     }
 
-    public async Task<PagedResult<Project>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<PagedResult<ProjectWithOwner>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken)
     {
         var (normalizedPage, normalizedPageSize) = Pagination.Normalize(page, pageSize);
 
 
         var projects = await _projectRepository.GetAllAsync(normalizedPage, normalizedPageSize, cancellationToken);
         var total = await _projectRepository.CountAsync(cancellationToken);
+        var assignedIds = projects.Select(p => p.OwnerId)
+                                  .Distinct()
+                                  .ToList();
 
-        return new PagedResult<Project>(projects, normalizedPage, normalizedPageSize, total);
+        var namesById = new Dictionary<Guid, string>();
+
+        if (assignedIds.Count > 0)
+        {
+            var users = await _userRepository.GetByIdsAsync(assignedIds, cancellationToken);
+            namesById = users.ToDictionary(u => u.Id, u => u.Name);
+        }
+
+        var items = projects.Select(p => new ProjectWithOwner(p, namesById.GetValueOrDefault(p.OwnerId)));
+
+        return new PagedResult<ProjectWithOwner>(items, normalizedPage, normalizedPageSize, total);
     }
 
     public async Task UpdateAsync(Guid id, string name, string? description, CancellationToken cancellationToken)
