@@ -38,8 +38,8 @@ public class TaskItemsController : ControllerBase
     {
         var result = await _service.GetAllAsync(projectId, page, pageSize, cancellationToken);
 
-        var response = new PagedResult<TaskItemResponse>(
-                    result.Items.Select(TaskItemResponse.FromEntity),
+        var response = new PagedResult<TaskItemWithAssigneeResponse>(
+                    result.Items.Select(TaskItemWithAssigneeResponse.FromModel),
                     result.Page,
                     result.PageSize,
                     result.TotalItems);

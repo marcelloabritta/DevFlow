@@ -63,7 +63,7 @@ public class TaskItemService
         return taskItem;
     }
 
-    public async Task<PagedResult<TaskItem>> GetAllAsync(Guid projectId, int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<PagedResult<TaskItemWithAssignee>> GetAllAsync(Guid projectId, int page, int pageSize, CancellationToken cancellationToken)
     {
         var projectExists = await _projectRepository.ExistsAsync(projectId, cancellationToken);
         if (!projectExists)
@@ -76,7 +76,25 @@ public class TaskItemService
         var taskItems = await _taskItemRepository.GetAllAsync(projectId, normalizedPage, normalizedPageSize, cancellationToken);
         var total = await _taskItemRepository.CountAsync(projectId, cancellationToken);
 
-        return new PagedResult<TaskItem>(taskItems, normalizedPage, normalizedPageSize, total);
+        var assignedIds = taskItems.Select(t => t.AssignedToUserId)
+                                   .OfType<Guid>()
+                                   .Distinct()
+                                   .ToList();
+
+        var namesById = new Dictionary<Guid, string>();
+
+        if (assignedIds.Count > 0)
+        {
+            var users = await _userRepository.GetByIdsAsync(assignedIds, cancellationToken);
+            namesById = users.ToDictionary(u => u.Id, u => u.Name);
+        }
+
+        var items = taskItems.Select(t => new TaskItemWithAssignee(
+            t,
+            t.AssignedToUserId is null ? null : namesById.GetValueOrDefault(t.AssignedToUserId.Value)
+        ));
+
+        return new PagedResult<TaskItemWithAssignee>(items, normalizedPage, normalizedPageSize, total);
     }
 
     public async Task UpdateAsync(Guid id, UpdateTaskItemCommand command, CancellationToken cancellationToken)

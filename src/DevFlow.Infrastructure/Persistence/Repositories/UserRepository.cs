@@ -1,4 +1,5 @@
 using DevFlow.Application.Interfaces;
+using DevFlow.Domain.Entities;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -15,5 +16,12 @@ public class UserRepository : IUserRepository
     public async Task<bool> ExistsAsync(Guid userId, CancellationToken cancellationToken)
     {
         return await _context.Users.AnyAsync(u => u.Id == userId, cancellationToken);
+    }
+
+    public async Task<IEnumerable<User>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
+    {
+        return await _context.Users.AsNoTracking()
+                                   .Where(u => ids.Contains(u.Id))
+                                   .ToListAsync(cancellationToken);
     }
 }
