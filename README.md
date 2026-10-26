@@ -83,8 +83,9 @@ A API sobe em `http://localhost:5120`.
 
 | Método | Rota                                               | Descrição                                           | Sucesso |
 | ------ | -------------------------------------------------- | --------------------------------------------------- | ------- |
+| POST   | `/api/users`                                       | Cadastra um usuário (entra como Member)             | 201     |
 | POST   | `/api/projects`                                    | Cria um projeto                                     | 201     |
-| GET    | `/api/projects?page=1&pageSize=10`                 | Lista projetos (paginado, máx. 50)                  | 200     |
+| GET    | `/api/projects?page=1&pageSize=10`                 | Lista projetos, com dono (paginado, máx. 50)        | 200     |
 | GET    | `/api/projects/{id}`                               | Busca um projeto pelo id                            | 200     |
 | PUT    | `/api/projects/{id}`                               | Edita nome e descrição                              | 204     |
 | DELETE | `/api/projects/{id}`                               | Exclui um projeto (soft delete)                     | 204     |
@@ -96,4 +97,4 @@ A API sobe em `http://localhost:5120`.
 | POST   | `/api/taskitems/{id}/logs`                         | Registra horas trabalhadas na tarefa                | 204     |
 | PATCH  | `/api/taskitems/{id}/status`                       | Muda o status da tarefa                             | 204     |
 
-Erros seguem o padrão: **400** para dados inválidos e **404** para recurso inexistente.
+Erros seguem o padrão: **400** para dados inválidos, **404** para recurso inexistente e **409** para conflito (ex.: e-mail já cadastrado).
