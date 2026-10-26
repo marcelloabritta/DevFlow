@@ -1,6 +1,7 @@
 using DevFlow.Application.Interfaces;
 using DevFlow.Infrastructure.Persistence;
 using DevFlow.Infrastructure.Persistence.Repositories;
+using DevFlow.Infrastructure.Security;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,8 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ITaskItemRepository, TaskItemRepository>();
         services.AddScoped<ITaskLogRepository, TaskLogRepository>();
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
+
 
         return services;
     }
