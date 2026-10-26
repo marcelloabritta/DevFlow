@@ -15,6 +15,7 @@ public class GlobalExceptionHandler : IExceptionHandler
             NotFoundException => StatusCodes.Status404NotFound,
             OperationCanceledException => StatusCodes.Status499ClientClosedRequest,
             ConflictException => StatusCodes.Status409Conflict,
+            UnauthorizedException => StatusCodes.Status401Unauthorized,
             _ => null
         };
 
