@@ -30,6 +30,12 @@ public class UserRepository : IUserRepository
         return await _context.Users.AnyAsync(u => u.Email == email, cancellationToken);
     }
 
+    public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)
+    {
+        return await _context.Users.AsNoTracking()
+                                   .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+    }
+
     public async Task<IEnumerable<User>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
     {
         return await _context.Users.AsNoTracking()
