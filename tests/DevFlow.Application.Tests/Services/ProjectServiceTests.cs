@@ -2,6 +2,7 @@ using DevFlow.Application.Exceptions;
 using DevFlow.Application.Interfaces;
 using DevFlow.Application.Services;
 using DevFlow.Domain.Entities;
+using DevFlow.Domain.Enums;
 
 using Moq;
 
@@ -140,6 +141,27 @@ public class ProjectServiceTests
         Assert.Equal(page, result.Page);
         Assert.Equal(10, result.PageSize);
     }
+
+    [Fact]
+    public async Task GetAllAsync_WithOwner_ReturnsOwnerName()
+    {
+        // Arrange
+        var user = new User(name: "User Name", email: "user@email.com", passwordHash: "PasswordHash", UserRole.Member);
+        var project = new Project(name: "Project Name", description: "Any description", ownerId: user.Id);
+        _userRepositoryMock.Setup(repo => repo.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+                           .ReturnsAsync([user]);
+        _projectRepositoryMock.Setup(repo => repo.GetAllAsync(1, 10, It.IsAny<CancellationToken>()))
+                              .ReturnsAsync([project]);
+        _projectRepositoryMock.Setup(repo => repo.CountAsync(It.IsAny<CancellationToken>()))
+                               .ReturnsAsync(35);
+        // Act
+        var result = await _service.GetAllAsync(1, 10, CancellationToken.None);
+
+        // Assert
+        var item = Assert.Single(result.Items);
+        Assert.Equal("User Name", item.OwnerName);
+    }
+
 
     [Fact]
     public async Task UpdateAsync_WithNonexistentId_ThrowsNotFoundException()
