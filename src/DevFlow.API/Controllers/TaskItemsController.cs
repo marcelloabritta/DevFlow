@@ -3,10 +3,12 @@ using DevFlow.API.Responses;
 using DevFlow.Application.Common;
 using DevFlow.Application.Services;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevFlow.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class TaskItemsController : ControllerBase
