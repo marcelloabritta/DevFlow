@@ -64,14 +64,22 @@ Use os mesmos valores que você colocou no `.env`:
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5433;Database=devflow;Username=devflow;Password=SUA_SENHA" --project src/DevFlow.API
 ```
 
-**5. Crie as tabelas (migrations)**
+**5. Configure a chave do JWT (User Secrets)**
+
+Gere uma chave aleatória (mínimo de 32 caracteres) e guarde nos User Secrets. Nunca coloque a chave no código nem no git:
+
+```bash
+dotnet user-secrets set "Jwt:Key" "SUA_CHAVE_ALEATORIA_AQUI" --project src/DevFlow.API
+```
+
+**6. Crie as tabelas (migrations)**
 
 ```bash
 dotnet tool install --global dotnet-ef
 dotnet ef database update --project src/DevFlow.Infrastructure --startup-project src/DevFlow.API
 ```
 
-**6. Rode a API**
+**7. Rode a API**
 
 ```bash
 dotnet run --project src/DevFlow.API
@@ -83,6 +91,7 @@ A API sobe em `http://localhost:5120`.
 
 | Método | Rota                                               | Descrição                                           | Sucesso |
 | ------ | -------------------------------------------------- | --------------------------------------------------- | ------- |
+| POST   | `/api/auth/login`                                  | Faz login e devolve o token JWT                     | 200     |
 | POST   | `/api/users`                                       | Cadastra um usuário (entra como Member)             | 201     |
 | POST   | `/api/projects`                                    | Cria um projeto                                     | 201     |
 | GET    | `/api/projects?page=1&pageSize=10`                 | Lista projetos, com dono (paginado, máx. 50)        | 200     |
@@ -97,4 +106,4 @@ A API sobe em `http://localhost:5120`.
 | POST   | `/api/taskitems/{id}/logs`                         | Registra horas trabalhadas na tarefa                | 204     |
 | PATCH  | `/api/taskitems/{id}/status`                       | Muda o status da tarefa                             | 204     |
 
-Erros seguem o padrão: **400** para dados inválidos, **404** para recurso inexistente e **409** para conflito (ex.: e-mail já cadastrado).
+Erros seguem o padrão: **400** para dados inválidos, **401** para credenciais inválidas, **404** para recurso inexistente e **409** para conflito (ex.: e-mail já cadastrado).
