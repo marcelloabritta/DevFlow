@@ -20,6 +20,7 @@ public class ProjectsController : ControllerBase
         _service = service;
     }
 
+    [Authorize(Roles = "Leader,Admin")]
     [HttpPost]
     public async Task<IActionResult> Create(CreateProjectRequest request, CancellationToken cancellationToken)
     {
@@ -49,6 +50,7 @@ public class ProjectsController : ControllerBase
         return Ok(response);
     }
 
+    [Authorize(Roles = "Leader,Admin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, UpdateProjectRequest request, CancellationToken cancellationToken)
     {
@@ -56,6 +58,7 @@ public class ProjectsController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
