@@ -87,23 +87,33 @@ dotnet run --project src/DevFlow.API
 
 A API sobe em `http://localhost:5120`.
 
+## Autenticação
+
+A API usa JWT. Faça login em `POST /api/auth/login` e envie o token em cada requisição:
+
+```
+Authorization: Bearer <token>
+```
+
+O token vale 1 hora. Os papéis são `Member`, `Leader` e `Admin`, e todo cadastro entra como `Member`. Não existe rota para mudar o papel de um usuário, então a promoção é feita direto no banco.
+
 ## Endpoints
 
-| Método | Rota                                               | Descrição                                           | Sucesso |
-| ------ | -------------------------------------------------- | --------------------------------------------------- | ------- |
-| POST   | `/api/auth/login`                                  | Faz login e devolve o token JWT                     | 200     |
-| POST   | `/api/users`                                       | Cadastra um usuário (entra como Member)             | 201     |
-| POST   | `/api/projects`                                    | Cria um projeto                                     | 201     |
-| GET    | `/api/projects?page=1&pageSize=10`                 | Lista projetos, com dono (paginado, máx. 50)        | 200     |
-| GET    | `/api/projects/{id}`                               | Busca um projeto pelo id                            | 200     |
-| PUT    | `/api/projects/{id}`                               | Edita nome e descrição                              | 204     |
-| DELETE | `/api/projects/{id}`                               | Exclui um projeto (soft delete)                     | 204     |
-| POST   | `/api/taskitems`                                   | Cria uma tarefa                                     | 201     |
-| GET    | `/api/taskitems?projectId={id}&page=1&pageSize=10` | Lista tarefas do projeto, com responsável (máx. 50) | 200     |
-| GET    | `/api/taskitems/{id}`                              | Busca uma tarefa pelo id                            | 200     |
-| PUT    | `/api/taskitems/{id}`                              | Edita título, descrição, prioridade, horas e prazo  | 204     |
-| DELETE | `/api/taskitems/{id}`                              | Exclui uma tarefa (soft delete)                     | 204     |
-| POST   | `/api/taskitems/{id}/logs`                         | Registra horas trabalhadas na tarefa                | 204     |
-| PATCH  | `/api/taskitems/{id}/status`                       | Muda o status da tarefa                             | 204     |
+| Método | Rota                                               | Descrição                                           | Acesso          | Sucesso |
+| ------ | -------------------------------------------------- | --------------------------------------------------- | --------------- | ------- |
+| POST   | `/api/auth/login`                                  | Faz login e devolve o token JWT                     | Público         | 200     |
+| POST   | `/api/users`                                       | Cadastra um usuário (entra como Member)             | Público         | 201     |
+| POST   | `/api/projects`                                    | Cria um projeto (o dono é quem está logado)         | Leader ou Admin | 201     |
+| GET    | `/api/projects?page=1&pageSize=10`                 | Lista projetos, com dono (paginado, máx. 50)        | Logado          | 200     |
+| GET    | `/api/projects/{id}`                               | Busca um projeto pelo id                            | Logado          | 200     |
+| PUT    | `/api/projects/{id}`                               | Edita nome e descrição                              | Leader ou Admin | 204     |
+| DELETE | `/api/projects/{id}`                               | Exclui um projeto (soft delete)                     | Admin           | 204     |
+| POST   | `/api/taskitems`                                   | Cria uma tarefa                                     | Logado          | 201     |
+| GET    | `/api/taskitems?projectId={id}&page=1&pageSize=10` | Lista tarefas do projeto, com responsável (máx. 50) | Logado          | 200     |
+| GET    | `/api/taskitems/{id}`                              | Busca uma tarefa pelo id                            | Logado          | 200     |
+| PUT    | `/api/taskitems/{id}`                              | Edita título, descrição, prioridade, horas e prazo  | Logado          | 204     |
+| DELETE | `/api/taskitems/{id}`                              | Exclui uma tarefa (soft delete)                     | Admin           | 204     |
+| POST   | `/api/taskitems/{id}/logs`                         | Registra horas (quem registra é o usuário logado)   | Logado          | 204     |
+| PATCH  | `/api/taskitems/{id}/status`                       | Muda o status da tarefa                             | Logado          | 204     |
 
-Erros seguem o padrão: **400** para dados inválidos, **401** para credenciais inválidas, **404** para recurso inexistente e **409** para conflito (ex.: e-mail já cadastrado).
+Erros seguem o padrão: **400** para dados inválidos, **401** para token ausente ou inválido e credenciais incorretas, **403** para papel sem permissão, **404** para recurso inexistente e **409** para conflito (ex.: e-mail já cadastrado).
