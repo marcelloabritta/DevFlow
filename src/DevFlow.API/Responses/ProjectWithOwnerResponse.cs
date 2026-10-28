@@ -6,7 +6,7 @@ public record ProjectWithOwnerResponse(Guid Id, string Name, string? Description
 {
     public static ProjectWithOwnerResponse FromModel(ProjectWithOwner item)
     {
-        var project = item.Project;
+        var project = item;
 
         return new ProjectWithOwnerResponse(
             project.Id,
