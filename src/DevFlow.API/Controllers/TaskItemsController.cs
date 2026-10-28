@@ -1,3 +1,4 @@
+using DevFlow.API.Extensions;
 using DevFlow.API.Requests;
 using DevFlow.API.Responses;
 using DevFlow.Application.Common;
@@ -72,7 +73,8 @@ public class TaskItemsController : ControllerBase
     [HttpPost("{id}/logs")]
     public async Task<IActionResult> LogHours(Guid id, LogHoursRequest request, CancellationToken cancellationToken)
     {
-        await _service.LogHoursAsync(id, request.ToCommand(), cancellationToken);
+        var userId = User.GetUserId();
+        await _service.LogHoursAsync(id, request.ToCommand(userId), cancellationToken);
 
         return NoContent();
     }
