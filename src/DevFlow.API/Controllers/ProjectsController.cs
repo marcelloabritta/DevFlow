@@ -1,6 +1,9 @@
+using System.Security.Claims;
+
 using DevFlow.API.Requests;
 using DevFlow.API.Responses;
 using DevFlow.Application.Common;
+using DevFlow.Application.Exceptions;
 using DevFlow.Application.Services;
 
 using Microsoft.AspNetCore.Authorization;
@@ -24,7 +27,12 @@ public class ProjectsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateProjectRequest request, CancellationToken cancellationToken)
     {
-        var id = await _service.CreateAsync(request.Name, request.Description, request.OwnerId, cancellationToken);
+        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+        {
+            throw new UnauthorizedException("Invalid token.");
+        }
+
+        var id = await _service.CreateAsync(request.Name, request.Description, userId, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id }, id);
     }
 
