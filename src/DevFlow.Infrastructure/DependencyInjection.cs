@@ -1,4 +1,5 @@
 using DevFlow.Application.Interfaces;
+using DevFlow.Infrastructure.Caching;
 using DevFlow.Infrastructure.Persistence;
 using DevFlow.Infrastructure.Persistence.Repositories;
 using DevFlow.Infrastructure.Security;
@@ -11,7 +12,7 @@ namespace DevFlow.Infrastructure;
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services, string connectionString)
+        this IServiceCollection services, string connectionString, string redisConnectionString)
     {
         services.AddDbContext<DevFlowDbContext>(options =>
             options.UseNpgsql(connectionString));
@@ -22,6 +23,8 @@ public static class DependencyInjection
         services.AddScoped<ITaskLogRepository, TaskLogRepository>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddScoped<ICacheService, CacheService>();
+        services.AddStackExchangeRedisCache(options => options.Configuration = redisConnectionString);
 
 
         return services;
