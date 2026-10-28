@@ -13,12 +13,14 @@ public class ProjectServiceTests
     private readonly Mock<IProjectRepository> _projectRepositoryMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly ProjectService _service;
+    private readonly Mock<ICacheService> _cacheServiceMock;
 
     public ProjectServiceTests()
     {
         _projectRepositoryMock = new Mock<IProjectRepository>();
         _userRepositoryMock = new Mock<IUserRepository>();
-        _service = new ProjectService(_projectRepositoryMock.Object, _userRepositoryMock.Object);
+        _cacheServiceMock = new Mock<ICacheService>();
+        _service = new ProjectService(_projectRepositoryMock.Object, _userRepositoryMock.Object, _cacheServiceMock.Object);
     }
 
     [Fact]

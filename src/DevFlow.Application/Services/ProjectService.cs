@@ -7,13 +7,16 @@ namespace DevFlow.Application.Services;
 
 public class ProjectService
 {
+    private const int ProjectsCacheMinutes = 5;
     private readonly IProjectRepository _projectRepository;
     private readonly IUserRepository _userRepository;
+    private readonly ICacheService _cacheService;
 
-    public ProjectService(IProjectRepository projectRepository, IUserRepository userRepository)
+    public ProjectService(IProjectRepository projectRepository, IUserRepository userRepository, ICacheService cacheService)
     {
         _projectRepository = projectRepository;
         _userRepository = userRepository;
+        _cacheService = cacheService;
     }
 
     public async Task<Guid> CreateAsync(string name, string? description, Guid ownerId, CancellationToken cancellationToken)
@@ -45,6 +48,13 @@ public class ProjectService
     {
         var (normalizedPage, normalizedPageSize) = Pagination.Normalize(page, pageSize);
 
+        var cacheKey = $"projects:page={normalizedPage}:size={normalizedPageSize}";
+        var cached = await _cacheService.GetAsync<PagedResult<ProjectWithOwner>>(cacheKey, cancellationToken);
+
+        if (cached is not null)
+        {
+            return cached;
+        }
 
         var projects = await _projectRepository.GetAllAsync(normalizedPage, normalizedPageSize, cancellationToken);
         var total = await _projectRepository.CountAsync(cancellationToken);
@@ -60,9 +70,13 @@ public class ProjectService
             namesById = users.ToDictionary(u => u.Id, u => u.Name);
         }
 
-        var items = projects.Select(p => new ProjectWithOwner(p, namesById.GetValueOrDefault(p.OwnerId)));
+        var items = projects.Select(p => new ProjectWithOwner(p.Id, p.Name, p.Description, p.CreatedAt, p.UpdatedAt, p.OwnerId, namesById.GetValueOrDefault(p.OwnerId)));
 
-        return new PagedResult<ProjectWithOwner>(items, normalizedPage, normalizedPageSize, total);
+        var result = new PagedResult<ProjectWithOwner>(items.ToList(), normalizedPage, normalizedPageSize, total);
+
+        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(ProjectsCacheMinutes), cancellationToken);
+
+        return result;
     }
 
     public async Task UpdateAsync(Guid id, string name, string? description, CancellationToken cancellationToken)
