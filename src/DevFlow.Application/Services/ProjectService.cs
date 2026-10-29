@@ -8,6 +8,8 @@ namespace DevFlow.Application.Services;
 public class ProjectService
 {
     private const int ProjectsCacheMinutes = 5;
+    private const string ProjectsVersionKey = "projects:version";
+    private const int ProjectsVersionHours = 24;
     private readonly IProjectRepository _projectRepository;
     private readonly IUserRepository _userRepository;
     private readonly ICacheService _cacheService;
@@ -30,6 +32,7 @@ public class ProjectService
         }
 
         await _projectRepository.AddAsync(project, cancellationToken);
+        await InvalidateProjectsCacheAsync();
         return project.Id;
     }
 
@@ -48,7 +51,8 @@ public class ProjectService
     {
         var (normalizedPage, normalizedPageSize) = Pagination.Normalize(page, pageSize);
 
-        var cacheKey = $"projects:page={normalizedPage}:size={normalizedPageSize}";
+        var version = await GetProjectsVersionAsync(cancellationToken);
+        var cacheKey = $"projects:{version}:page={normalizedPage}:size={normalizedPageSize}";
         var cached = await _cacheService.GetAsync<PagedResult<ProjectWithOwner>>(cacheKey, cancellationToken);
 
         if (cached is not null)
@@ -84,6 +88,7 @@ public class ProjectService
         var project = await GetByIdAsync(id, cancellationToken);
         project.Update(name, description);
         await _projectRepository.UpdateAsync(project, cancellationToken);
+        await InvalidateProjectsCacheAsync();
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
@@ -91,5 +96,26 @@ public class ProjectService
         var project = await GetByIdAsync(id, cancellationToken);
         project.MarkAsDeleted();
         await _projectRepository.UpdateAsync(project, cancellationToken);
+        await InvalidateProjectsCacheAsync();
+    }
+
+    private async Task<string> GetProjectsVersionAsync(CancellationToken cancellationToken)
+    {
+        var version = await _cacheService.GetAsync<string>(ProjectsVersionKey, cancellationToken);
+        if (version is not null)
+        {
+            return version;
+        }
+
+        var newVersion = Guid.NewGuid().ToString("N");
+        await _cacheService.SetAsync(ProjectsVersionKey, newVersion, TimeSpan.FromHours(ProjectsVersionHours), cancellationToken);
+        return newVersion;
+    }
+
+    private async Task InvalidateProjectsCacheAsync()
+    {
+        // The database was already changed, so the cache must be invalidated even if the client cancelled.
+        var newVersion = Guid.NewGuid().ToString("N");
+        await _cacheService.SetAsync(ProjectsVersionKey, newVersion, TimeSpan.FromHours(ProjectsVersionHours), CancellationToken.None);
     }
 }
